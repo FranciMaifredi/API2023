@@ -4,11 +4,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct nodo{
+    int distanza; // key
+    int autonomiaMax;
+    enum {RED, BLACK} color;
+    struct nodo* p;
+    struct nodo* left;
+    struct nodo* right;
+};
+
+struct nodo* treeRoot = NULL;
+
 void aggiungiStazione();
 void aggiungiAuto();
 void pianificaPercorso();
 void rottamaAuto();
 void demolisciStazione();
+// RED BLACK TREE FUNCTIONS
+void insert(struct nodo* root, struct nodo* z);
+struct nodo* delete(struct nodo* root, struct nodo* z);
+void leftRotate(struct nodo* root, struct nodo* nodo);
+void rightRotate(struct nodo* root, struct nodo* nodo);
+void rbInsertFixup(struct nodo* root, struct nodo* nodo);
+void rbDeleteFixup(struct nodo* root, struct nodo* nodo);
 
 int main(){
     char comando[19];
@@ -60,3 +78,55 @@ void demolisciStazione(){
     scanf("%d", &distanza);
     // TODO
 }
+
+void insert(struct nodo* root, struct nodo* z){
+    struct nodo* y = NULL;
+    struct nodo* x = root;
+    while(x!=NULL){
+        y = x;
+        if(z->distanza < x->distanza)
+            x = x->left;
+        else
+            x = x->right;
+    }
+    z->p = y;
+    if(y==NULL)
+        root = z;
+    else if(z->distanza < y->distanza)
+        y->left = z;
+    else
+        y->right = z;
+    z->left = NULL;
+    z->right = NULL;
+    z->color = RED;
+    rbInsertFixup(root, z);
+}
+
+struct nodo* delete(struct nodo* root, struct nodo* z){
+    struct nodo* y = NULL;
+    struct nodo* x = NULL;
+    if(z->left==NULL || z->right==NULL)
+        y = z;
+    else
+        y = treeSuccessor(z);
+    if(y->left!=NULL)
+        x = y->left;
+    else
+        x = y->right;
+    x->p=y->p;
+    if(y->p==NULL)
+        root=x;
+    else if(y==y->p->left)
+        y->p->left = x;
+    else
+        y->p->right=x;
+    if(y!=z){
+        z->distanza = y->distanza;
+        z->autonomiaMax = y->autonomiaMax; // controlla autonomiaMax!
+    }
+    if(y->color==BLACK)
+        rbDeleteFixup(root, x);
+    return y;
+}
+
+
