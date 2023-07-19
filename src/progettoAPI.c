@@ -25,8 +25,9 @@ void insert(struct nodo* root, struct nodo* z);
 struct nodo* delete(struct nodo* root, struct nodo* z);
 void leftRotate(struct nodo* root, struct nodo* x);
 void rightRotate(struct nodo* root, struct nodo* x);
-void rbInsertFixup(struct nodo* root, struct nodo* nodo);
-void rbDeleteFixup(struct nodo* root, struct nodo* nodo);
+void rbInsertFixup(struct nodo* root, struct nodo* z);
+void rbDeleteFixup(struct nodo* root, struct nodo* z);
+struct nodo* treeSuccessor(struct nodo* x);
 
 int main(){
     char comando[19];
@@ -159,6 +160,106 @@ void rightRotate(struct nodo* root, struct nodo* x){
         x->p->left = y;
     y->right = x;
     x->p = y;
+}
+
+void rbInsertFixup(struct nodo* root, struct nodo* z){
+    struct nodo* x = NULL;
+    struct nodo* y = NULL;
+    if(z==root)
+        root.color = BLACK;
+    else{
+        x = z->p;
+        if(x->color==RED){
+            if(x==x->p->left){
+                y = x->p->right;
+                if(y->color==RED){
+                    x->color = BLACK;
+                    y->color = BLACK;
+                    x->p->color = RED;
+                    rbInsertFixup(root, x->p);
+                }
+                else if(z==x->right){
+                    z = x;
+                    leftRotate(root, z);
+                    x = z->p;
+                }
+                x->color = BLACK;
+                x->p->color = RED;
+                rightRotate(root, x->p);
+            }
+            else{
+                y = x->p->left;
+                if(y->color==RED){
+                    xx->color = BLACK;
+                    y->color = BLACK;
+                    x->p->color = RED;
+                    rbInsertFixup(root, x->p);
+                }
+                else if(z==x->left){
+                    z = x;
+                    rightRotate(root, z);
+                    x = z->p;
+                }
+                x->color = BLACK;
+                x->p->color = RED;
+                leftRotate(root, x->p);
+            }
+        }
+    }
+    // root->color = BLACK;
+}
+
+void rbDeleteFixup(struct nodo* root, struct nodo* z){
+    struct nodo* x = NULL;
+    struct nodo* w = NULL;
+    if(x->color==RED || x->p==NULL)
+        x->color = BLACK;
+    else if(x==x->p->left){
+        w = x->p->right;
+        if(w->color==RED){
+            w->color = BLACK;
+            x->p->color = RED;
+            leftRotate(root, x->p);
+            w = x->p->right;
+        }
+        if(w->left->color==BLACK && w->right->color==BLACK){
+            w->color = RED;
+            rbDeleteFixup(root, x->p);
+        }
+        else if(w->right->color==BLACK){
+            w->left->color = BLACK;
+            w->color = RED;
+            rightRotate(root, w);
+            w = x->p->right;
+        }
+        w->color = x->p->color;
+        x->p->color = BLACK;
+        w->right->color = BLACK;
+        leftRotate(root, x->p);
+    }
+    else{
+        w = x->p->left;
+        if(w->color==RED){
+            w->color = BLACK;
+            x->p->color = RED;
+            rightRotate(root, x->p);
+            w = x->p->left;
+        }
+        if(w->right->color==BLACK && w->left->color==BLACK){
+            w->color = RED;
+            rbDeleteFixup(root, x->p);
+        }
+        else if(w->left->color==BLACK){
+            w->right->color = BLACK;
+            w->color = RED;
+            leftRotate(root, w);
+            w = x->p->left;
+        }
+        w->color = x->p->color;
+        x->p->color = BLACK;
+        w->left->color = BLACK;
+        rightRotate(root, x->p);
+    }
 }
 
 
