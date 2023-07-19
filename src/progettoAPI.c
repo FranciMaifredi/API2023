@@ -4,22 +4,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct nodo{ // ALBERO DELLE STAZIONI
+// LISTA DELLE AUTONOMIE
+struct nodo2{
+    int autonomia;
+    struct auto* next;
+};
+typedef struct nodo2* autoList;
+
+// ALBERO DELLE STAZIONI
+struct nodo{
     int distanza; // key
     int autonomiaMax;
     enum {RED, BLACK} color;
     struct nodo* p;
     struct nodo* left;
     struct nodo* right;
-    struct nodo* autoTreeRoot; // root dell'albero delle autonomie
+    autoList autonomies; // testa della lista delle autonomie
 };
 struct nodo* treeRoot = NULL;
 
-struct nodo2{ // LISTA DELLE AUTONOMIE
-    int autonomia;
-    struct auto* next;
-};
-struct nodo2* autoList = NULL;
 
 void aggiungiStazione();
 void aggiungiAuto();
