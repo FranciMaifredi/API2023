@@ -28,6 +28,7 @@ void rightRotate(struct nodo* root, struct nodo* x);
 void rbInsertFixup(struct nodo* root, struct nodo* z);
 void rbDeleteFixup(struct nodo* root, struct nodo* z);
 struct nodo* treeSuccessor(struct nodo* x);
+struct nodo* treeMinimum(struct nodo* x);
 
 int main(){
     char comando[19];
@@ -260,6 +261,24 @@ void rbDeleteFixup(struct nodo* root, struct nodo* z){
         w->left->color = BLACK;
         rightRotate(root, x->p);
     }
+}
+
+struct nodo* treeSuccessor(struct nodo* x){
+    struct nodo* y = NULL;
+    if(x->right!=NULL)
+        return treeMinimum(x->right);
+    y = x->p;
+    while(y!=NULL && x==y->right){
+        x = y;
+        y = y->p;
+    }
+    return y;
+}
+
+struct nodo* treeMinimum(struct nodo* x){
+    while(x->left!=NULL)
+        x = x->left;
+    return x;
 }
 
 
