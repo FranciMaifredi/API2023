@@ -23,8 +23,8 @@ void demolisciStazione();
 // RED BLACK TREE FUNCTIONS
 void insert(struct nodo* root, struct nodo* z);
 struct nodo* delete(struct nodo* root, struct nodo* z);
-void leftRotate(struct nodo* root, struct nodo* nodo);
-void rightRotate(struct nodo* root, struct nodo* nodo);
+void leftRotate(struct nodo* root, struct nodo* x);
+void rightRotate(struct nodo* root, struct nodo* x);
 void rbInsertFixup(struct nodo* root, struct nodo* nodo);
 void rbDeleteFixup(struct nodo* root, struct nodo* nodo);
 
@@ -128,5 +128,40 @@ struct nodo* delete(struct nodo* root, struct nodo* z){
         rbDeleteFixup(root, x);
     return y;
 }
+
+void leftRotate(struct nodo* root, struct nodo* x){
+    struct nodo* y = x->right;
+    x->right = y->left;
+    if(y->left!=NULL)
+        y->left->p = x;
+    y->p = x->p;
+    if(x->p==NULL)
+        root = y;
+    else if(x==x->p->left)
+        x->p->left = y;
+    else
+        x->p->right = y;
+    y->left = x;
+    x->p = y;
+}
+
+void rightRotate(struct nodo* root, struct nodo* x){
+    struct nodo* y = x->left;
+    x->left = y->right;
+    if(y->right!=NULL)
+        y->right->p = x;
+    y->p = x->p;
+    if(x->p==NULL)
+        root = y;
+    else if(x==x->p->right)
+        x->p->right = y;
+    else
+        x->p->left = y;
+    y->right = x;
+    x->p = y;
+}
+
+
+
 
 
