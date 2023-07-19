@@ -4,16 +4,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct nodo{
+struct nodo{ // ALBERO DELLE STAZIONI
     int distanza; // key
     int autonomiaMax;
     enum {RED, BLACK} color;
     struct nodo* p;
     struct nodo* left;
     struct nodo* right;
+    struct nodo* autoTreeRoot; // root dell'albero delle autonomie
 };
-
 struct nodo* treeRoot = NULL;
+
+struct nodo2{ // LISTA DELLE AUTONOMIE
+    int autonomia;
+    struct auto* next;
+};
+struct nodo2* autoList = NULL;
 
 void aggiungiStazione();
 void aggiungiAuto();
