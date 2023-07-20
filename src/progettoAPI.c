@@ -116,7 +116,12 @@ void pianificaPercorso(){
 void rottamaAuto(){
     int distanza, autonomia;
     scanf("%d %d", &distanza, &autonomia);
-    // TODO
+    struct nodo* z = treeSearch(root, distanza);
+    if(z!=NULL){
+        z->autonomiesHead = listDelete(z, autonomia);
+    }
+    else
+        printf("non rottamata\n");
 }
 
 void demolisciStazione(){
@@ -360,6 +365,46 @@ struct nodo2* listInsert(struct nodo* treeNode, int autonomia){
             prec->next = newNode;
             return treeNode->autonomiesHead;
         }
+    }
+}
+
+struct nodo2* listDelete(struct nodo* treeNode, int autonomia){
+    struct nodo2* prec = NULL;
+    struct nodo2* temp = treeNode->autonomiesHead;
+    while(temp!=NULL && autonomia<temp->autonomia){
+        prec = temp;
+        temp = temp->next;
+    }
+    if(temp!=NULL && temp->autonomia==autonomia){
+        temp->count--;
+        if(temp->count==0){
+            if(autonomia==treeNode->autonomiaMax){
+                if(temp->next!=NULL)
+                    treeNode->autonomiaMax = temp->next->autonomia;
+                else
+                    treeNode->autonomiaMax = 0;
+            }
+            if(prec==NULL){
+                treeNode->autonomiesHead = temp->next;
+                free(temp);
+                printf("rottamata\n")
+                return treeNode->autonomiesHead;
+            }
+            else{
+                prec->next = temp->next;
+                free(temp);
+                printf("rottamata\n")
+                return treeNode->autonomiesHead;
+            }
+        }
+        else{
+            printf("rottamata\n");
+            return treeNode->autonomiesHead;
+        }
+    }
+    else{
+        printf("non rottamata\n");
+        return treeNode->autonomiesHead;
     }
 }
 
