@@ -26,7 +26,7 @@ struct nodo2{
 void aggiungiStazione(struct nodo* root);
 void aggiungiAuto(struct nodo* root);
 void pianificaPercorso();
-void rottamaAuto();
+void rottamaAuto(struct nodo* root);
 void demolisciStazione();
 // RED BLACK TREE FUNCTIONS
 void insert(struct nodo* root, struct nodo* z);
@@ -54,7 +54,7 @@ int main(){
         else if(strcmp(comando, "pianifica-percorso")==0)
             pianificaPercorso();
         else if(strcmp(comando, "rottama-auto")==0)
-            rottamaAuto();
+            rottamaAuto(treeRoot);
         else if(strcmp(comando, "demolisci-stazione")==0)
             demolisciStazione();
     }
@@ -113,7 +113,7 @@ void pianificaPercorso(){
     // TODO
 }
 
-void rottamaAuto(){
+void rottamaAuto(struct nodo* root){
     int distanza, autonomia;
     scanf("%d %d", &distanza, &autonomia);
     struct nodo* z = treeSearch(root, distanza);
