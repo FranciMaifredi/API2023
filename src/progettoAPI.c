@@ -4,13 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// LISTA DELLE AUTONOMIE
-struct nodo2{
-    int autonomia;
-    struct auto* next;
-};
-typedef struct nodo2* autoList;
-
 // ALBERO DELLE STAZIONI
 struct nodo{
     int distanza; // key
@@ -19,12 +12,17 @@ struct nodo{
     struct nodo* p;
     struct nodo* left;
     struct nodo* right;
-    autoList autonomies; // testa della lista delle autonomie
+    struct nodo2* autonomiesHead; // testa della lista delle autonomie
 };
-struct nodo* treeRoot = NULL;
 
+// LISTA DELLE AUTONOMIE
+// lista non ordinata. Il collo di bottiglia è l'eliminazione
+struct nodo2{
+    int autonomia;
+    struct nodo2* next;
+};
 
-void aggiungiStazione();
+void aggiungiStazione(struct nodo* root);
 void aggiungiAuto();
 void pianificaPercorso();
 void rottamaAuto();
@@ -38,13 +36,17 @@ void rbInsertFixup(struct nodo* root, struct nodo* z);
 void rbDeleteFixup(struct nodo* root, struct nodo* z);
 struct nodo* treeSuccessor(struct nodo* x);
 struct nodo* treeMinimum(struct nodo* x);
+// LIST FUNCTIONS
+struct nodo2* listInsert(struct nodo2* head, int autonomia);
+struct nodo2* listDelete(struct nodo2* head, int autonomia);
 
 int main(){
+    struct nodo* treeRoot = NULL;
     char comando[19];
     while(!feof(stdin)){
         scanf("%s", comando);
         if(strcmp(comando, "aggiungi-stazione")==0)
-            aggiungiStazione();
+            aggiungiStazione(treeRoot);
         else if(strcmp(comando, "aggiungi-auto")==0)
             aggiungiAuto();
         else if(strcmp(comando, "pianifica-percorso")==0)
@@ -57,13 +59,28 @@ int main(){
     return 0;
 }
 
-void aggiungiStazione(){
-    int distanza, numAuto;
+void aggiungiStazione(struct nodo* root){
+    int distanza, numAuto, autonomia;
     scanf("%d %d", &distanza, &numAuto);
+
+    // creo nodo da inserire nell'albero delle stazioni
+    struct nodo* z = (struct nodo*)malloc(sizeof(struct nodo));
+    z->distanza = distanza;
+    z->autonomiaMax = 0;
+    z->color = RED; // necessario?
+    z->p = NULL; // necessario?
+    z->left = NULL; // necessario?
+    z->right = NULL; // necessario?
+    z->autonomiesHead = NULL; // necessario?
+    insert(root, z);
+
+    // inserisco le autonomie delle auto
     for(int i=0; i<numAuto; i++){
-        // TODO: aggiungi autonomie auto
+        scanf("%d", &autonomia);
+        z->autonomiesHead = listInsert(z->autonomiesHead, autonomia);
+        if(autonomia > z->autonomiaMax)
+            z->autonomiaMax = autonomia;
     }
-    // TODO
 }
 
 void aggiungiAuto(){
@@ -288,6 +305,13 @@ struct nodo* treeMinimum(struct nodo* x){
     while(x->left!=NULL)
         x = x->left;
     return x;
+}
+
+struct nodo2* listInsert(struct nodo2* head, int autonomia){
+    struct nodo2* z = (struct nodo2*)malloc(sizeof(struct nodo2));
+    z->autonomia = autonomia;
+    z->next = head;
+    return z;
 }
 
 
