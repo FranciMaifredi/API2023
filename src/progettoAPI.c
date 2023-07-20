@@ -16,14 +16,15 @@ struct nodo{
 };
 
 // LISTA DELLE AUTONOMIE
-// lista non ordinata. Il collo di bottiglia è l'eliminazione
+// lista ordinata in ordine decrescente di autonomia
 struct nodo2{
     int autonomia;
+    int count;
     struct nodo2* next;
 };
 
 void aggiungiStazione(struct nodo* root);
-void aggiungiAuto();
+void aggiungiAuto(struct nodo* root);
 void pianificaPercorso();
 void rottamaAuto();
 void demolisciStazione();
@@ -36,9 +37,10 @@ void rbInsertFixup(struct nodo* root, struct nodo* z);
 void rbDeleteFixup(struct nodo* root, struct nodo* z);
 struct nodo* treeSuccessor(struct nodo* x);
 struct nodo* treeMinimum(struct nodo* x);
+struct nodo* treeSearch(struct nodo* root, int distanza);
 // LIST FUNCTIONS
-struct nodo2* listInsert(struct nodo2* head, int autonomia);
-struct nodo2* listDelete(struct nodo2* head, int autonomia);
+struct nodo2* listInsert(struct nodo* treeNode, int autonomia);
+struct nodo2* listDelete(struct nodo* treeNode, int autonomia);
 
 int main(){
     struct nodo* treeRoot = NULL;
@@ -48,7 +50,7 @@ int main(){
         if(strcmp(comando, "aggiungi-stazione")==0)
             aggiungiStazione(treeRoot);
         else if(strcmp(comando, "aggiungi-auto")==0)
-            aggiungiAuto();
+            aggiungiAuto(treeRoot);
         else if(strcmp(comando, "pianifica-percorso")==0)
             pianificaPercorso();
         else if(strcmp(comando, "rottama-auto")==0)
@@ -63,8 +65,18 @@ void aggiungiStazione(struct nodo* root){
     int distanza, numAuto, autonomia;
     scanf("%d %d", &distanza, &numAuto);
 
+    // controllo se la stazione è già presente
+    struct nodo* z = treeSearch(root, distanza);
+    if(z!=NULL){
+        for(int i=0; i<numAuto; i++) // necessario?
+            scanf("%d", &autonomia);
+        printf("non aggiunta\n");
+        return;
+    }
+
+    // z = NULL, quindi la stazione non è presente
     // creo nodo da inserire nell'albero delle stazioni
-    struct nodo* z = (struct nodo*)malloc(sizeof(struct nodo));
+    z = (struct nodo*)malloc(sizeof(struct nodo));
     z->distanza = distanza;
     z->autonomiaMax = 0;
     z->color = RED; // necessario?
@@ -77,16 +89,22 @@ void aggiungiStazione(struct nodo* root){
     // inserisco le autonomie delle auto
     for(int i=0; i<numAuto; i++){
         scanf("%d", &autonomia);
-        z->autonomiesHead = listInsert(z->autonomiesHead, autonomia);
-        if(autonomia > z->autonomiaMax)
-            z->autonomiaMax = autonomia;
+        z->autonomiesHead = listInsert(z, autonomia);
     }
+
+    printf("aggiunta\n");
 }
 
-void aggiungiAuto(){
+void aggiungiAuto(struct nodo* root){
     int distanza, autonomia;
     scanf("%d %d", &distanza, &autonomia);
-    // TODO
+    struct nodo* z = treeSearch(root, distanza);
+    if(z!=NULL){
+        z->autonomiesHead = listInsert(z, autonomia);
+        printf("aggiunta\n");
+    }
+    else
+        printf("non aggiunta\n");
 }
 
 void pianificaPercorso(){
@@ -307,11 +325,42 @@ struct nodo* treeMinimum(struct nodo* x){
     return x;
 }
 
-struct nodo2* listInsert(struct nodo2* head, int autonomia){
-    struct nodo2* z = (struct nodo2*)malloc(sizeof(struct nodo2));
-    z->autonomia = autonomia;
-    z->next = head;
-    return z;
+struct nodo* treeSearch(struct nodo* root, int distanza){
+    if(root==NULL || distanza==root->distanza)
+        return root;
+    if(distanza<root->distanza)
+        return treeSearch(root->left, distanza);
+    else
+        return treeSearch(root->right, distanza);
+}
+
+struct nodo2* listInsert(struct nodo* treeNode, int autonomia){
+    struct nodo2* prec = NULL;
+    struct nodo2* temp = treeNode->autonomiesHead;
+    while(temp!=NULL && autonomia<temp->autonomia){
+        prec = temp;
+        temp = temp->next;
+    }
+    if(temp!=NULL && temp->autonomia==autonomia){
+        temp->count++;
+        return treeNode->autonomiesHead;
+    }
+    else{
+        struct nodo2* newNode = (struct nodo2*)malloc(sizeof(struct nodo2));
+        newNode->autonomia = autonomia;
+        newNode->count = 1;
+        newNode->next = temp;
+        if(autonomia > treeNode->autonomiaMax)
+            treeNode->autonomiaMax = autonomia;
+        if(prec==NULL){
+            treeNode->autonomiesHead = newNode;
+            return treeNode->autonomiesHead;
+        }
+        else{
+            prec->next = newNode;
+            return treeNode->autonomiesHead;
+        }
+    }
 }
 
 
