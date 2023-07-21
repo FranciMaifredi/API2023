@@ -27,7 +27,7 @@ void aggiungiStazione(struct nodo* root);
 void aggiungiAuto(struct nodo* root);
 void pianificaPercorso();
 void rottamaAuto(struct nodo* root);
-void demolisciStazione();
+void demolisciStazione(struct nodo* root);
 // RED BLACK TREE FUNCTIONS
 void insert(struct nodo* root, struct nodo* z);
 struct nodo* delete(struct nodo* root, struct nodo* z);
@@ -56,7 +56,7 @@ int main(){
         else if(strcmp(comando, "rottama-auto")==0)
             rottamaAuto(treeRoot);
         else if(strcmp(comando, "demolisci-stazione")==0)
-            demolisciStazione();
+            demolisciStazione(treeRoot);
     }
     return 0;
 }
@@ -124,10 +124,26 @@ void rottamaAuto(struct nodo* root){
         printf("non rottamata\n");
 }
 
-void demolisciStazione(){
+void demolisciStazione(struct nodo* root){
     int distanza;
     scanf("%d", &distanza);
-    // TODO
+    struct nodo* z = treeSearch(root, distanza);
+    if(z!=NULL){ // stazione esiste
+        z = delete(root, z);
+        if(z->autonomiesHead!=NULL){ // necessario?
+            struct nodo2* tmp = z->autonomiesHead->next;
+            while(tmp!=NULL){
+                free(z->autonomiesHead);
+                z->autonomiesHead = tmp;
+                tmp = tmp->next;
+            }
+            free(z->autonomiesHead);
+        }
+        free(z);
+        printf("demolita\n");
+    }
+    else
+        printf("non demolita\n");
 }
 
 void insert(struct nodo* root, struct nodo* z){
