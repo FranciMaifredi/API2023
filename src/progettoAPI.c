@@ -16,16 +16,22 @@ struct nodo{
 };
 
 // LISTA DELLE AUTONOMIE
-// lista ordinata in ordine decrescente di autonomia
+// ordinata in ordine decrescente di autonomia
 struct nodo2{
     int autonomia;
     int count;
     struct nodo2* next;
 };
 
+// LISTA DELLE TAPPE DEL PERCORSO
+struct nodo3{
+    int distanza;
+    struct nodo3* next;
+};
+
 void aggiungiStazione(struct nodo* root);
 void aggiungiAuto(struct nodo* root);
-void pianificaPercorso();
+void pianificaPercorso(struct nodo* root);
 void rottamaAuto(struct nodo* root);
 void demolisciStazione(struct nodo* root);
 // RED BLACK TREE FUNCTIONS
@@ -52,7 +58,7 @@ int main(){
         else if(strcmp(comando, "aggiungi-auto")==0)
             aggiungiAuto(treeRoot);
         else if(strcmp(comando, "pianifica-percorso")==0)
-            pianificaPercorso();
+            pianificaPercorso(treeRoot);
         else if(strcmp(comando, "rottama-auto")==0)
             rottamaAuto(treeRoot);
         else if(strcmp(comando, "demolisci-stazione")==0)
@@ -107,9 +113,52 @@ void aggiungiAuto(struct nodo* root){
         printf("non aggiunta\n");
 }
 
-void pianificaPercorso(){
+void pianificaPercorso(struct nodo* root){
     int partenza, arrivo;
     scanf("%d %d", &partenza, &arrivo);
+    struct nodo* startStation = treeSearch(root, partenza);
+    struct nodo* endStation = treeSearch(root, arrivo);
+    if(partenza==arrivo) { // stessa stazione
+        printf("%d\n", partenza);
+    }
+    else if(partenza<arrivo){ // da sinistra a destra
+        struct nodo3* percorso = NULL;
+        struct nodo3* toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
+        toInsert->distanza = arrivo;
+        toInsert->next = NULL;
+        percorso = toInsert;
+        struct nodo* tmp = NULL;
+        while(toInsert->distanza!=partenza){
+            tmp = startStation;
+            while(tmp!=endStation) {
+                if (tmp->autonomiaMax >= arrivo - tmp->distanza) {
+                    struct nodo3 *toInsert = (struct nodo3 *) malloc(sizeof(struct nodo3));
+                    toInsert->distanza = tmp->distanza;
+                    toInsert->next = percorso;
+                    percorso = toInsert;
+                    endStation = tmp;
+                    arrivo = tmp->distanza;
+                    break;
+                }
+            }
+            if(tmp==endStation){
+                printf("nessun percorso\n");
+                break;
+            }
+            if(toInsert->distanza==partenza){
+                struct nodo3* tmp2 = percorso;
+                while(tmp2!=NULL){
+                    printf("%d ", tmp2->distanza);
+                    // free(tmp2) si può fare?
+                    tmp2 = tmp2->next;
+                }
+                printf("\n");
+            }
+        }
+    }
+    else{ // da destra a sinistra
+        // TODO
+    }
     // TODO
 }
 
