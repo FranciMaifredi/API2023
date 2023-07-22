@@ -121,32 +121,33 @@ void pianificaPercorso(struct nodo* root){
     if(partenza==arrivo) { // stessa stazione
         printf("%d\n", partenza);
     }
-    else if(partenza<arrivo){ // da sinistra a destra
-        struct nodo3* percorso = NULL;
+    else if(partenza<arrivo){ // da sinistra a destra, complessità fattoriale
+        struct nodo3* list = NULL;
         struct nodo3* toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
         toInsert->distanza = arrivo;
         toInsert->next = NULL;
-        percorso = toInsert;
+        list = toInsert;
         struct nodo* tmp = NULL;
         while(toInsert->distanza!=partenza){
             tmp = startStation;
             while(tmp!=endStation) {
-                if (tmp->autonomiaMax >= arrivo - tmp->distanza) {
+                if (tmp->autonomiaMax >= arrivo - tmp->distanza) { // inserisco in testa
                     struct nodo3 *toInsert = (struct nodo3 *) malloc(sizeof(struct nodo3));
                     toInsert->distanza = tmp->distanza;
-                    toInsert->next = percorso;
-                    percorso = toInsert;
+                    toInsert->next = list;
+                    list = toInsert;
                     endStation = tmp;
                     arrivo = tmp->distanza;
                     break;
                 }
+                tmp = treeSuccessor(tmp);
             }
-            if(tmp==endStation){
+            if(tmp==endStation){ // non esiste percorso
                 printf("nessun percorso\n");
                 break;
             }
-            if(toInsert->distanza==partenza){
-                struct nodo3* tmp2 = percorso;
+            if(toInsert->distanza==partenza){ // esiste percorso
+                struct nodo3* tmp2 = list;
                 while(tmp2!=NULL){
                     printf("%d ", tmp2->distanza);
                     // free(tmp2) si può fare?
@@ -157,9 +158,44 @@ void pianificaPercorso(struct nodo* root){
         }
     }
     else{ // da destra a sinistra
-        // TODO
+        struct nodo3* listHead = NULL;
+        struct nodo3* listTail = NULL;
+        struct nodo3* toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
+        toInsert->distanza = partenza;
+        toInsert->next = NULL;
+        listHead = toInsert;
+        listTail = toInsert;
+        struct nodo* tmp = NULL;
+        while(toInsert->distanza!=arrivo){
+            tmp = endStation;
+            while(tmp!=startStation){
+                if(startStation->autonomiaMax >= partenza - tmp->distanza){ // inserisco in coda
+                    struct nodo3* toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
+                    toInsert->distanza = tmp->distanza;
+                    toInsert->next = NULL;
+                    listTail->next = toInsert;
+                    listTail = toInsert;
+                    startStation = tmp;
+                    partenza = tmp->distanza;
+                    break;
+                }
+                tmp = treeSuccessor(tmp);
+            }
+            if(tmp==startStation){
+                printf("nessun percorso\n");
+                break;
+            }
+            if(toInsert->distanza==arrivo){
+                struct nodo3* tmp2 = listHead;
+                while(tmp2!=NULL){
+                    printf("%d ", tmp2->distanza);
+                    // free(tmp2) si può fare?
+                    tmp2 = tmp2->next;
+                }
+                printf("\n");
+            }
+        }
     }
-    // TODO
 }
 
 void rottamaAuto(struct nodo* root){
