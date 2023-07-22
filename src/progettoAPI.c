@@ -3,6 +3,7 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // ALBERO DELLE STAZIONI
 struct nodo{
@@ -317,7 +318,7 @@ void rbInsertFixup(struct nodo* root, struct nodo* z){
     struct nodo* x = NULL;
     struct nodo* y = NULL;
     if(z==root)
-        root.color = BLACK;
+        root->color = BLACK;
     else{
         x = z->p;
         if(x->color==RED){
@@ -341,7 +342,7 @@ void rbInsertFixup(struct nodo* root, struct nodo* z){
             else{
                 y = x->p->left;
                 if(y->color==RED){
-                    xx->color = BLACK;
+                    x->color = BLACK;
                     y->color = BLACK;
                     x->p->color = RED;
                     rbInsertFixup(root, x->p);
@@ -488,13 +489,13 @@ struct nodo2* listDelete(struct nodo* treeNode, int autonomia){
             if(prec==NULL){
                 treeNode->autonomiesHead = temp->next;
                 free(temp);
-                printf("rottamata\n")
+                printf("rottamata\n");
                 return treeNode->autonomiesHead;
             }
             else{
                 prec->next = temp->next;
                 free(temp);
-                printf("rottamata\n")
+                printf("rottamata\n");
                 return treeNode->autonomiesHead;
             }
         }
