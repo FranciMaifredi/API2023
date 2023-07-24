@@ -82,8 +82,7 @@ void aggiungiStazione(struct nodo* root){
         printf("non aggiunta\n");
         return; // necessario?
     }
-    else{
-        // z = NULL, quindi la stazione non è presente
+    else{ // z = NULL, quindi la stazione non è presente
         // creo nodo da inserire nell'albero delle stazioni
         z = (struct nodo*)malloc(sizeof(struct nodo));
         z->distanza = distanza;
@@ -246,8 +245,10 @@ void insert(struct nodo* root, struct nodo* z){
             x = x->right;
     }
     z->p = y;
-    if(y==NULL)
+    if(y==NULL){
         root = z;
+        printf("%d", z->distanza);
+    }
     else if(z->distanza < y->distanza)
         y->left = z;
     else
