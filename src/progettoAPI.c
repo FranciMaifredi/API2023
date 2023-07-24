@@ -31,6 +31,7 @@ struct nodo3{
     struct nodo3* next;
 };
 
+// forse conviene ritornare treeRoot per non perderne il riferimento
 void aggiungiStazione(struct nodo* root);
 void aggiungiAuto(struct nodo* root);
 void pianificaPercorso(struct nodo* root);
@@ -79,28 +80,29 @@ void aggiungiStazione(struct nodo* root){
         for(int i=0; i<numAuto; i++) // necessario?
             helper = scanf("%d", &autonomia);
         printf("non aggiunta\n");
-        return;
+        return; // necessario?
     }
+    else{
+        // z = NULL, quindi la stazione non è presente
+        // creo nodo da inserire nell'albero delle stazioni
+        z = (struct nodo*)malloc(sizeof(struct nodo));
+        z->distanza = distanza;
+        z->autonomiaMax = 0;
+        z->color = RED; // necessario?
+        z->p = NULL; // necessario?
+        z->left = NULL; // necessario?
+        z->right = NULL; // necessario?
+        z->autonomiesHead = NULL; // necessario?
+        insert(root, z);
 
-    // z = NULL, quindi la stazione non è presente
-    // creo nodo da inserire nell'albero delle stazioni
-    z = (struct nodo*)malloc(sizeof(struct nodo));
-    z->distanza = distanza;
-    z->autonomiaMax = 0;
-    z->color = RED; // necessario?
-    z->p = NULL; // necessario?
-    z->left = NULL; // necessario?
-    z->right = NULL; // necessario?
-    z->autonomiesHead = NULL; // necessario?
-    insert(root, z);
+        // inserisco le autonomie delle auto
+        for(int i=0; i<numAuto; i++){
+            helper = scanf("%d", &autonomia);
+            z->autonomiesHead = listInsert(z, autonomia);
+        }
 
-    // inserisco le autonomie delle auto
-    for(int i=0; i<numAuto; i++){
-        helper = scanf("%d", &autonomia);
-        z->autonomiesHead = listInsert(z, autonomia);
+        printf("aggiunta\n");
     }
-
-    printf("aggiunta\n");
 }
 
 void aggiungiAuto(struct nodo* root){
