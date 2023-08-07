@@ -32,18 +32,19 @@ struct nodo3{
 };
 
 // forse conviene ritornare treeRoot per non perderne il riferimento
-void aggiungiStazione(struct nodo* root);
-void aggiungiAuto(struct nodo* root);
-void pianificaPercorso(struct nodo* root);
-void rottamaAuto(struct nodo* root);
-void demolisciStazione(struct nodo* root);
+void aggiungiStazione(struct nodo** root);
+void aggiungiAuto(struct nodo** root);
+void pianificaPercorso(struct nodo** root);
+void rottamaAuto(struct nodo** root);
+void demolisciStazione(struct nodo** root);
 // RED BLACK TREE FUNCTIONS
-void insert(struct nodo* root, struct nodo* z);
-struct nodo* delete(struct nodo* root, struct nodo* z);
-void leftRotate(struct nodo* root, struct nodo* x);
-void rightRotate(struct nodo* root, struct nodo* x);
-void rbInsertFixup(struct nodo* root, struct nodo* z);
-void rbDeleteFixup(struct nodo* root, struct nodo* z);
+void insert(struct nodo** root, struct nodo* z);
+struct nodo* delete(struct nodo** root, struct nodo* z);
+void rbTransplant(struct nodo** root, struct nodo* u, struct nodo* v);
+void leftRotate(struct nodo** root, struct nodo* x);
+void rightRotate(struct nodo** root, struct nodo* x);
+void rbInsertFixup(struct nodo** root, struct nodo* z);
+void rbDeleteFixup(struct nodo** root, struct nodo* z);
 struct nodo* treeSuccessor(struct nodo* x);
 struct nodo* treeMinimum(struct nodo* x);
 struct nodo* treeSearch(struct nodo* root, int distanza);
@@ -57,25 +58,25 @@ int main(){
     while(!feof(stdin)){
         helper = scanf("%s", comando);
         if(strcmp(comando, "aggiungi-stazione")==0)
-            aggiungiStazione(treeRoot);
+            aggiungiStazione(&treeRoot);
         else if(strcmp(comando, "aggiungi-auto")==0)
-            aggiungiAuto(treeRoot);
+            aggiungiAuto(&treeRoot);
         else if(strcmp(comando, "pianifica-percorso")==0)
-            pianificaPercorso(treeRoot);
+            pianificaPercorso(&treeRoot);
         else if(strcmp(comando, "rottama-auto")==0)
-            rottamaAuto(treeRoot);
+            rottamaAuto(&treeRoot);
         else if(strcmp(comando, "demolisci-stazione")==0)
-            demolisciStazione(treeRoot);
+            demolisciStazione(&treeRoot);
     }
     return 0;
 }
 
-void aggiungiStazione(struct nodo* root){
+void aggiungiStazione(struct nodo** root){
     int distanza, numAuto, autonomia;
     helper = scanf("%d %d", &distanza, &numAuto);
 
     // controllo se la stazione è già presente
-    struct nodo* z = treeSearch(root, distanza);
+    struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){
         for(int i=0; i<numAuto; i++) // necessario?
             helper = scanf("%d", &autonomia);
@@ -104,10 +105,10 @@ void aggiungiStazione(struct nodo* root){
     }
 }
 
-void aggiungiAuto(struct nodo* root){
+void aggiungiAuto(struct nodo** root){
     int distanza, autonomia;
     helper = scanf("%d %d", &distanza, &autonomia);
-    struct nodo* z = treeSearch(root, distanza);
+    struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){
         z->autonomiesHead = listInsert(z, autonomia);
         printf("aggiunta\n");
@@ -116,11 +117,11 @@ void aggiungiAuto(struct nodo* root){
         printf("non aggiunta\n");
 }
 
-void pianificaPercorso(struct nodo* root){
+void pianificaPercorso(struct nodo** root){
     int partenza, arrivo;
     helper = scanf("%d %d", &partenza, &arrivo);
-    struct nodo* startStation = treeSearch(root, partenza);
-    struct nodo* endStation = treeSearch(root, arrivo);
+    struct nodo* startStation = treeSearch(*root, partenza);
+    struct nodo* endStation = treeSearch(*root, arrivo);
     if(partenza==arrivo) { // stessa stazione
         printf("%d\n", partenza);
     }
@@ -201,10 +202,10 @@ void pianificaPercorso(struct nodo* root){
     }
 }
 
-void rottamaAuto(struct nodo* root){
+void rottamaAuto(struct nodo** root){
     int distanza, autonomia;
     helper = scanf("%d %d", &distanza, &autonomia);
-    struct nodo* z = treeSearch(root, distanza);
+    struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){
         z->autonomiesHead = listDelete(z, autonomia);
     }
@@ -212,10 +213,10 @@ void rottamaAuto(struct nodo* root){
         printf("non rottamata\n");
 }
 
-void demolisciStazione(struct nodo* root){
+void demolisciStazione(struct nodo** root){
     int distanza;
     helper = scanf("%d", &distanza);
-    struct nodo* z = treeSearch(root, distanza);
+    struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){ // stazione esiste
         z = delete(root, z);
         if(z->autonomiesHead!=NULL){ // necessario?
@@ -234,9 +235,9 @@ void demolisciStazione(struct nodo* root){
         printf("non demolita\n");
 }
 
-void insert(struct nodo* root, struct nodo* z){
+void insert(struct nodo** root, struct nodo* z){
     struct nodo* y = NULL;
-    struct nodo* x = root;
+    struct nodo* x = *root;
     while(x!=NULL){
         y = x;
         if(z->distanza < x->distanza)
@@ -246,7 +247,7 @@ void insert(struct nodo* root, struct nodo* z){
     }
     z->p = y;
     if(y==NULL){
-        root = z;
+        *root = z;
         printf("%d", z->distanza);
     }
     else if(z->distanza < y->distanza)
@@ -259,7 +260,38 @@ void insert(struct nodo* root, struct nodo* z){
     rbInsertFixup(root, z);
 }
 
-struct nodo* delete(struct nodo* root, struct nodo* z){
+struct nodo* delete(struct nodo** root, struct nodo* z){
+    struct nodo* x = NULL;
+    struct nodo* y = z;
+    enum {RED, BLACK} yOriginalColor = y->color;
+    if(z->left==NULL){
+        x = z->right;
+        rbTransplant(root, z, z->right);
+    }
+    else if(z->right==NULL){
+        x = z->left;
+        rbTransplant(root, z, z->left);
+    }
+    else{
+        y = treeMinimum(z->right);
+        yOriginalColor = y->color;
+        x = y->right;
+        if(y->p==z)
+            x->p=y;
+        else{
+            rbTransplant(root, y, y->right);
+            y->right = z->right;
+            y->right->p = y;
+        }
+        rbTransplant(root, z, y);
+        y->left = z->left;
+        y->left->p = y;
+        y->color = z->color;
+    }
+    if(yOriginalColor==BLACK)
+        rbDeleteFixup(root, x);
+
+    /*
     struct nodo* y = NULL;
     struct nodo* x = NULL;
     if(z->left==NULL || z->right==NULL)
@@ -284,16 +316,28 @@ struct nodo* delete(struct nodo* root, struct nodo* z){
     if(y->color==BLACK)
         rbDeleteFixup(root, x);
     return y;
+     */
 }
 
-void leftRotate(struct nodo* root, struct nodo* x){
+void rbTransplant(struct nodo** root, struct nodo* u, struct nodo* v){
+    if(u->p==NULL)
+        *root = v;
+    else if(u==u->p->left){
+        u->p->left = v;
+    }
+    else
+        u->p->right = v;
+    v->p = u->p;
+}
+
+void leftRotate(struct nodo** root, struct nodo* x){
     struct nodo* y = x->right;
     x->right = y->left;
     if(y->left!=NULL)
         y->left->p = x;
     y->p = x->p;
     if(x->p==NULL)
-        root = y;
+        *root = y;
     else if(x==x->p->left)
         x->p->left = y;
     else
@@ -302,14 +346,14 @@ void leftRotate(struct nodo* root, struct nodo* x){
     x->p = y;
 }
 
-void rightRotate(struct nodo* root, struct nodo* x){
+void rightRotate(struct nodo** root, struct nodo* x){
     struct nodo* y = x->left;
     x->left = y->right;
     if(y->right!=NULL)
         y->right->p = x;
     y->p = x->p;
     if(x->p==NULL)
-        root = y;
+        *root = y;
     else if(x==x->p->right)
         x->p->right = y;
     else
@@ -318,104 +362,105 @@ void rightRotate(struct nodo* root, struct nodo* x){
     x->p = y;
 }
 
-void rbInsertFixup(struct nodo* root, struct nodo* z){
-    struct nodo* x = NULL;
+void rbInsertFixup(struct nodo** root, struct nodo* z){
     struct nodo* y = NULL;
-    if(z==root)
-        root->color = BLACK;
-    else{
-        x = z->p;
-        if(x->color==RED){
-            if(x==x->p->left){
-                y = x->p->right;
-                if(y->color==RED){
-                    x->color = BLACK;
-                    y->color = BLACK;
-                    x->p->color = RED;
-                    rbInsertFixup(root, x->p);
-                }
-                else if(z==x->right){
-                    z = x;
-                    leftRotate(root, z);
-                    x = z->p;
-                }
-                x->color = BLACK;
-                x->p->color = RED;
-                rightRotate(root, x->p);
+    // if(z==root)
+    //    root->color = BLACK;
+    //else{
+    while(z->p->color==RED){
+        if(z->p==z->p->p->left){
+            y = z->p->p->right;
+            if(y->color==RED){
+                z->p->color = BLACK;
+                y->color = BLACK;
+                z->p->p->color = RED;
+                z = z->p->p;
             }
-            else{
-                y = x->p->left;
-                if(y->color==RED){
-                    x->color = BLACK;
-                    y->color = BLACK;
-                    x->p->color = RED;
-                    rbInsertFixup(root, x->p);
-                }
-                else if(z==x->left){
-                    z = x;
-                    rightRotate(root, z);
-                    x = z->p;
-                }
-                x->color = BLACK;
-                x->p->color = RED;
-                leftRotate(root, x->p);
+            else if(z==z->p->right){
+                z = z->p;
+                leftRotate(root, z);
             }
+            z->p->color = BLACK;
+            z->p->p->color = RED;
+            rightRotate(root, z->p->p);
+        }
+        else{
+            y = z->p->p->left;
+            if(y->color==RED){
+                z->p->color = BLACK;
+                y->color = BLACK;
+                z->p->p->color = RED;
+                z = z->p->p;
+            }
+            else if(z==z->p->left){
+                z = z->p;
+                rightRotate(root, z);
+            }
+            z->p->color = BLACK;
+            z->p->p->color = RED;
+            leftRotate(root, z->p->p);
         }
     }
-    // root->color = BLACK;
+    // }
+    (*root)->color = BLACK;
 }
 
-void rbDeleteFixup(struct nodo* root, struct nodo* z){
+void rbDeleteFixup(struct nodo** root, struct nodo* z){
     struct nodo* x = NULL;
     struct nodo* w = NULL;
-    if(x->color==RED || x->p==NULL)
-        x->color = BLACK;
-    else if(x==x->p->left){
-        w = x->p->right;
-        if(w->color==RED){
-            w->color = BLACK;
-            x->p->color = RED;
-            leftRotate(root, x->p);
+    while(x!=*root && x->color==BLACK){
+        // if(x->color==RED || x->p==NULL)
+        //    x->color = BLACK;
+        if(x==x->p->left){
             w = x->p->right;
-        }
-        if(w->left->color==BLACK && w->right->color==BLACK){
-            w->color = RED;
-            rbDeleteFixup(root, x->p);
-        }
-        else if(w->right->color==BLACK){
-            w->left->color = BLACK;
-            w->color = RED;
-            rightRotate(root, w);
-            w = x->p->right;
-        }
-        w->color = x->p->color;
-        x->p->color = BLACK;
-        w->right->color = BLACK;
-        leftRotate(root, x->p);
-    }
-    else{
-        w = x->p->left;
-        if(w->color==RED){
-            w->color = BLACK;
-            x->p->color = RED;
-            rightRotate(root, x->p);
-            w = x->p->left;
-        }
-        if(w->right->color==BLACK && w->left->color==BLACK){
-            w->color = RED;
-            rbDeleteFixup(root, x->p);
-        }
-        else if(w->left->color==BLACK){
+            if(w->color==RED){
+                w->color = BLACK;
+                x->p->color = RED;
+                leftRotate(root, x->p);
+                w = x->p->right;
+            }
+            if(w->left->color==BLACK && w->right->color==BLACK){
+                w->color = RED;
+                x = x->p;
+            }
+            else if(w->right->color==BLACK){
+                w->left->color = BLACK;
+                w->color = RED;
+                rightRotate(root, w);
+                w = x->p->right;
+            }
+            w->color = x->p->color;
+            x->p->color = BLACK;
             w->right->color = BLACK;
-            w->color = RED;
-            leftRotate(root, w);
-            w = x->p->left;
+            leftRotate(root, x->p);
+            x = *root;
         }
-        w->color = x->p->color;
-        x->p->color = BLACK;
-        w->left->color = BLACK;
-        rightRotate(root, x->p);
+        else{
+            w = x->p->left;
+            if(w->color==RED){
+                w->color = BLACK;
+                x->p->color = RED;
+                rightRotate(root, x->p);
+                w = x->p->left;
+            }
+            if(w->right->color==BLACK && w->left->color==BLACK){
+                w->color = RED;
+                x = x->p;
+            }
+            else if(w->left->color==BLACK){
+                w->right->color = BLACK;
+                w->color = RED;
+                leftRotate(root, w);
+                w = x->p->left;
+            }
+            w->color = x->p->color;
+            x->p->color = BLACK;
+            w->left->color = BLACK;
+            rightRotate(root, x->p);
+            x = *root;
+        }
     }
+    x->color = BLACK;
 }
 
 struct nodo* treeSuccessor(struct nodo* x){
