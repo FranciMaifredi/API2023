@@ -17,8 +17,7 @@ struct nodo{
     struct nodo2* autonomiesHead; // testa della lista delle autonomie
 };
 
-// LISTA DELLE AUTONOMIE
-// ordinata in ordine decrescente di autonomia
+// LISTA DELLE AUTONOMIE: ordinata in ordine decrescente di autonomia
 struct nodo2{
     int autonomia;
     int count;
@@ -174,7 +173,7 @@ void pianificaPercorso(struct nodo** root){
             tmp = endStation;
             while(tmp!=startStation){
                 if(startStation->autonomiaMax >= partenza - tmp->distanza){ // inserisco in coda
-                    struct nodo3* toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
+                    toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
                     toInsert->distanza = tmp->distanza;
                     toInsert->next = NULL;
                     listTail->next = toInsert;
@@ -290,7 +289,7 @@ struct nodo* delete(struct nodo** root, struct nodo* z){
     }
     if(yOriginalColor==BLACK)
         rbDeleteFixup(root, x);
-
+    return y;
     /*
     struct nodo* y = NULL;
     struct nodo* x = NULL;
