@@ -71,7 +71,7 @@ int main(){
 }
 
 void aggiungiStazione(struct nodo** root){
-    int distanza, numAuto, autonomia;
+    int distanza=0, numAuto=0, autonomia=0;
     helper = scanf("%d %d", &distanza, &numAuto);
 
     // controllo se la stazione è già presente
@@ -105,7 +105,7 @@ void aggiungiStazione(struct nodo** root){
 }
 
 void aggiungiAuto(struct nodo** root){
-    int distanza, autonomia;
+    int distanza=0, autonomia=0;
     helper = scanf("%d %d", &distanza, &autonomia);
     struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){
@@ -117,7 +117,7 @@ void aggiungiAuto(struct nodo** root){
 }
 
 void pianificaPercorso(struct nodo** root){
-    int partenza, arrivo;
+    int partenza=0, arrivo=0;
     helper = scanf("%d %d", &partenza, &arrivo);
     struct nodo* startStation = treeSearch(*root, partenza);
     struct nodo* endStation = treeSearch(*root, arrivo);
@@ -202,7 +202,7 @@ void pianificaPercorso(struct nodo** root){
 }
 
 void rottamaAuto(struct nodo** root){
-    int distanza, autonomia;
+    int distanza=0, autonomia=0;
     helper = scanf("%d %d", &distanza, &autonomia);
     struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){
@@ -213,7 +213,7 @@ void rottamaAuto(struct nodo** root){
 }
 
 void demolisciStazione(struct nodo** root){
-    int distanza;
+    int distanza=0;
     helper = scanf("%d", &distanza);
     struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){ // stazione esiste
