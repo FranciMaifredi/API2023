@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-char helper=0;
+int helper=0;
 
 // ALBERO DELLE STAZIONI
 struct nodo{
@@ -135,7 +135,7 @@ void pianificaPercorso(struct nodo** root){
             tmp = startStation;
             while(tmp!=endStation) {
                 if (tmp->autonomiaMax >= arrivo - tmp->distanza) { // inserisco in testa
-                    struct nodo3 *toInsert = (struct nodo3 *) malloc(sizeof(struct nodo3));
+                    toInsert = (struct nodo3 *) malloc(sizeof(struct nodo3));
                     toInsert->distanza = tmp->distanza;
                     toInsert->next = list;
                     list = toInsert;
