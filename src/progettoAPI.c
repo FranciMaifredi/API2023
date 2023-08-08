@@ -117,7 +117,7 @@ void aggiungiAuto(struct nodo** root){
 }
 
 void pianificaPercorso(struct nodo** root){
-    int partenza=0, arrivo=0; // boh
+    int partenza=0, arrivo=0;
     helper = scanf("%d %d", &partenza, &arrivo);
     struct nodo* startStation = treeSearch(*root, partenza);
     struct nodo* endStation = treeSearch(*root, arrivo);
