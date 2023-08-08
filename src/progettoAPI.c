@@ -383,9 +383,11 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
                     z = z->p;
                     leftRotate(root, z);
                 }
-                z->p->color = BLACK;
-                z->p->p->color = RED;
-                rightRotate(root, z->p->p);
+                else{
+                    z->p->color = BLACK;
+                    z->p->p->color = RED;
+                    rightRotate(root, z->p->p);
+                }
             }
             else{
                 y = z->p->p->left;
@@ -399,9 +401,11 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
                     z = z->p;
                     rightRotate(root, z);
                 }
-                z->p->color = BLACK;
-                z->p->p->color = RED;
-                leftRotate(root, z->p->p);
+                else{
+                    z->p->color = BLACK;
+                    z->p->p->color = RED;
+                    leftRotate(root, z->p->p);
+                }
             }
         }
     }
@@ -433,11 +437,13 @@ void rbDeleteFixup(struct nodo** root, struct nodo* z){
                     rightRotate(root, w);
                     w = z->p->right;
                 }
-                w->color = z->p->color;
-                z->p->color = BLACK;
-                w->right->color = BLACK;
-                leftRotate(root, z->p);
-                z = *root;
+                else{
+                    w->color = z->p->color;
+                    z->p->color = BLACK;
+                    w->right->color = BLACK;
+                    leftRotate(root, z->p);
+                    z = *root;
+                }
             }
             else{
                 w = z->p->left;
@@ -457,11 +463,13 @@ void rbDeleteFixup(struct nodo** root, struct nodo* z){
                     leftRotate(root, w);
                     w = z->p->left;
                 }
-                w->color = z->p->color;
-                z->p->color = BLACK;
-                w->left->color = BLACK;
-                rightRotate(root, z->p);
-                z = *root;
+                else{
+                    w->color = z->p->color;
+                    z->p->color = BLACK;
+                    w->left->color = BLACK;
+                    rightRotate(root, z->p);
+                    z = *root;
+                }
             }
         }
     }
