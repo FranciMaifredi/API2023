@@ -121,6 +121,7 @@ void pianificaPercorso(struct nodo** root){
     helper = scanf("%d %d", &partenza, &arrivo);
     struct nodo* startStation = treeSearch(*root, partenza);
     struct nodo* endStation = treeSearch(*root, arrivo);
+    struct nodo* end = endStation;
     if(partenza==arrivo) { // stessa stazione
         printf("%d\n", partenza);
     }
@@ -145,7 +146,7 @@ void pianificaPercorso(struct nodo** root){
                 }
                 tmp = treeSuccessor(tmp);
             }
-            if(tmp==endStation){ // non esiste percorso
+            if(tmp==end){ // non esiste percorso
                 printf("nessun percorso\n");
                 break;
             }
