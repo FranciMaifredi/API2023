@@ -117,7 +117,7 @@ void aggiungiAuto(struct nodo** root){
 }
 
 void pianificaPercorso(struct nodo** root){
-    int partenza=0, arrivo=0;
+    int partenza=0, arrivo=0; // boh
     helper = scanf("%d %d", &partenza, &arrivo);
     struct nodo* startStation = treeSearch(*root, partenza);
     struct nodo* endStation = treeSearch(*root, arrivo);
@@ -379,15 +379,16 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
                     z->p->p->color = RED;
                     z = z->p->p;
                 }
-                else if(z==z->p->right){
-                    z = z->p;
-                    leftRotate(root, z);
-                }
                 else{
+                    if(z==z->p->right){
+                        z = z->p;
+                        leftRotate(root, z);
+                    }
                     z->p->color = BLACK;
                     z->p->p->color = RED;
                     rightRotate(root, z->p->p);
                 }
+
             }
             else{
                 y = z->p->p->left;
@@ -397,11 +398,11 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
                     z->p->p->color = RED;
                     z = z->p->p;
                 }
-                else if(z==z->p->left){
-                    z = z->p;
-                    rightRotate(root, z);
-                }
                 else{
+                    if(z==z->p->left){
+                        z = z->p;
+                        rightRotate(root, z);
+                    }
                     z->p->color = BLACK;
                     z->p->p->color = RED;
                     leftRotate(root, z->p->p);
@@ -431,13 +432,13 @@ void rbDeleteFixup(struct nodo** root, struct nodo* z){
                     w->color = RED;
                     z = z->p;
                 }
-                else if(w->right->color==BLACK){
-                    w->left->color = BLACK;
-                    w->color = RED;
-                    rightRotate(root, w);
-                    w = z->p->right;
-                }
                 else{
+                    if(w->right->color==BLACK){
+                        w->left->color = BLACK;
+                        w->color = RED;
+                        rightRotate(root, w);
+                        w = z->p->right;
+                    }
                     w->color = z->p->color;
                     z->p->color = BLACK;
                     w->right->color = BLACK;
@@ -457,13 +458,13 @@ void rbDeleteFixup(struct nodo** root, struct nodo* z){
                     w->color = RED;
                     z = z->p;
                 }
-                else if(w->left->color==BLACK){
-                    w->right->color = BLACK;
-                    w->color = RED;
-                    leftRotate(root, w);
-                    w = z->p->left;
-                }
                 else{
+                    if(w->left->color==BLACK){
+                        w->right->color = BLACK;
+                        w->color = RED;
+                        leftRotate(root, w);
+                        w = z->p->left;
+                    }
                     w->color = z->p->color;
                     z->p->color = BLACK;
                     w->left->color = BLACK;
