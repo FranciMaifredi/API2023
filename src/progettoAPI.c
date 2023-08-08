@@ -374,7 +374,7 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
         if(z->p->p!=NULL){
             if(z->p==z->p->p->left){
                 y = z->p->p->right;
-                if(y->color==RED){
+                if(y!=NULL && y->color==RED){
                     z->p->color = BLACK;
                     y->color = BLACK;
                     z->p->p->color = RED;
@@ -393,7 +393,7 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
             }
             else{
                 y = z->p->p->left;
-                if(y->color==RED){
+                if(y!=NULL && y->color==RED){
                     z->p->color = BLACK;
                     y->color = BLACK;
                     z->p->p->color = RED;
