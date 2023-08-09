@@ -118,10 +118,10 @@ void aggiungiAuto(struct nodo** root){
 
 void pianificaPercorso(struct nodo** root){
     int partenza=0, arrivo=0;
+    int flag=0;
     helper = scanf("%d %d", &partenza, &arrivo);
     struct nodo* startStation = treeSearch(*root, partenza);
     struct nodo* endStation = treeSearch(*root, arrivo);
-    struct nodo* end = endStation;
     if(partenza==arrivo) { // stessa stazione
         printf("%d\n", partenza);
     }
@@ -134,6 +134,7 @@ void pianificaPercorso(struct nodo** root){
         struct nodo* tmp = NULL;
         while(toInsert->distanza!=partenza){
             tmp = startStation;
+            flag=0;
             while(tmp!=endStation) {
                 if (tmp->autonomiaMax >= arrivo - tmp->distanza) { // inserisco in testa
                     toInsert = (struct nodo3 *) malloc(sizeof(struct nodo3));
@@ -142,11 +143,12 @@ void pianificaPercorso(struct nodo** root){
                     list = toInsert;
                     endStation = tmp;
                     arrivo = tmp->distanza;
+                    flag=1;
                     break;
                 }
                 tmp = treeSuccessor(tmp);
             }
-            if(tmp==end){ // non esiste percorso
+            if(tmp==endStation && !flag){ // non esiste percorso
                 printf("nessun percorso\n");
                 break;
             }
@@ -172,6 +174,7 @@ void pianificaPercorso(struct nodo** root){
         struct nodo* tmp = NULL;
         while(toInsert->distanza!=arrivo){
             tmp = endStation;
+            flag=0;
             while(tmp!=startStation){
                 if(startStation->autonomiaMax >= partenza - tmp->distanza){ // inserisco in coda
                     toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
@@ -181,11 +184,12 @@ void pianificaPercorso(struct nodo** root){
                     listTail = toInsert;
                     startStation = tmp;
                     partenza = tmp->distanza;
+                    flag=1;
                     break;
                 }
                 tmp = treeSuccessor(tmp);
             }
-            if(tmp==startStation){
+            if(tmp==startStation && !flag){
                 printf("nessun percorso\n");
                 break;
             }
