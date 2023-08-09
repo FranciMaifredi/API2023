@@ -118,7 +118,7 @@ void aggiungiAuto(struct nodo** root){
 
 void pianificaPercorso(struct nodo** root){
     int partenza=0, arrivo=0;
-    int flag=0;
+    char flag=0;
     helper = scanf("%d %d", &partenza, &arrivo);
     struct nodo* startStation = treeSearch(*root, partenza);
     struct nodo* endStation = treeSearch(*root, arrivo);
@@ -148,7 +148,7 @@ void pianificaPercorso(struct nodo** root){
                 }
                 tmp = treeSuccessor(tmp);
             }
-            if(tmp==endStation && !flag){ // non esiste percorso
+            if(tmp==endStation && flag==0){ // non esiste percorso
                 printf("nessun percorso\n");
                 break;
             }
@@ -189,7 +189,7 @@ void pianificaPercorso(struct nodo** root){
                 }
                 tmp = treeSuccessor(tmp);
             }
-            if(tmp==startStation && !flag){
+            if(tmp==startStation && flag==0){
                 printf("nessun percorso\n");
                 break;
             }
