@@ -226,7 +226,8 @@ void pianificaPercorso(struct nodo** root){
                     list = toInsert;
                      */
                     if(sizeof(percorso)==lastOcc+2){ // array ha solo ultima posizione vuota
-                        percorso = realloc(percorso, (sizeof(percorso)+2)*sizeof(int));
+                        int size = sizeof(percorso);
+                        percorso = realloc(percorso, size+2*sizeof(int));
                     }
                     percorso[lastOcc+1]=tmp->distanza;
                     lastOcc++;
@@ -239,7 +240,7 @@ void pianificaPercorso(struct nodo** root){
             }
             if(tmp==endStation && flag==0){ // non esiste percorso
                 printf("nessun percorso\n");
-                free(percorso);
+                // free(percorso);
                 break;
             }
             if(percorso[lastOcc]==partenza){ // esiste percorso
@@ -253,7 +254,7 @@ void pianificaPercorso(struct nodo** root){
                     printf("%d ", percorso[i]);
                 }
                 printf("\n");
-                free(percorso);
+                // free(percorso);
                 break; // non necessario
             }
         }
@@ -283,7 +284,8 @@ void pianificaPercorso(struct nodo** root){
                     listTail = toInsert;
                      */
                     if(sizeof(percorso)==lastOcc+2){ // array ha solo ultima posizione vuota
-                        percorso = realloc(percorso, (sizeof(percorso)+2)*sizeof(int));
+                        int size = sizeof(percorso);
+                        percorso = realloc(percorso, size+2*sizeof(int));
                     }
                     percorso[lastOcc+1]=tmp->distanza;
                     lastOcc++;
@@ -296,7 +298,7 @@ void pianificaPercorso(struct nodo** root){
             }
             if(tmp==startStation && flag==0){
                 printf("nessun percorso\n");
-                free(percorso);
+                // free(percorso);
                 break;
             }
             if(percorso[lastOcc]==arrivo){
@@ -311,7 +313,7 @@ void pianificaPercorso(struct nodo** root){
                     printf("%d ", percorso[i]);
                 }
                 printf("\n");
-                free(percorso);
+                // free(percorso);
                 break; // non necessario
             }
         }
@@ -416,16 +418,18 @@ struct nodo* delete(struct nodo** root, struct nodo* z){
         y = treeMinimum(z->right);
         yOriginalColor = y->color;
         x = y->right;
-        if(y->p==z)
+        if(y->p==z && x!=NULL)
             x->p=y;
         else{
             rbTransplant(root, y, y->right);
             y->right = z->right;
-            y->right->p = y;
+            if(y->right!=NULL)
+                y->right->p = y;
         }
         rbTransplant(root, z, y);
         y->left = z->left;
-        y->left->p = y;
+        if(y->left!=NULL)
+            y->left->p = y;
         y->color = z->color;
     }
     if(yOriginalColor==1)
@@ -475,34 +479,38 @@ void rbTransplant(struct nodo** root, struct nodo* u, struct nodo* v){
 
 void leftRotate(struct nodo** root, struct nodo* x){
     struct nodo* y = x->right;
-    x->right = y->left;
-    if(y->left!=NULL)
-        y->left->p = x;
-    y->p = x->p;
-    if(x->p==NULL)
-        *root = y;
-    else if(x==x->p->left)
-        x->p->left = y;
-    else
-        x->p->right = y;
-    y->left = x;
-    x->p = y;
+    if(x!=NULL && y!=NULL){
+        x->right = y->left;
+        if(y->left!=NULL)
+            y->left->p = x;
+        y->p = x->p;
+        if(x->p==NULL)
+            *root = y;
+        else if(x==x->p->left)
+            x->p->left = y;
+        else
+            x->p->right = y;
+        y->left = x;
+        x->p = y;
+    }
 }
 
 void rightRotate(struct nodo** root, struct nodo* x){
     struct nodo* y = x->left;
-    x->left = y->right;
-    if(y->right!=NULL)
-        y->right->p = x;
-    y->p = x->p;
-    if(x->p==NULL)
-        *root = y;
-    else if(x==x->p->right)
-        x->p->right = y;
-    else
-        x->p->left = y;
-    y->right = x;
-    x->p = y;
+    if(x!=NULL && y!=NULL){
+        x->left = y->right;
+        if(y->right!=NULL)
+            y->right->p = x;
+        y->p = x->p;
+        if(x->p==NULL)
+            *root = y;
+        else if(x==x->p->right)
+            x->p->right = y;
+        else
+            x->p->left = y;
+        y->right = x;
+        x->p = y;
+    }
 }
 
 void rbInsertFixup(struct nodo** root, struct nodo* z){
@@ -557,66 +565,67 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
 
 void rbDeleteFixup(struct nodo** root, struct nodo* z){
     struct nodo* w = NULL;
-    while(z!=*root && z->color==1){
-        // if(x->color==RED || x->p==NULL)
-        //    x->color = BLACK;
-        if(z->p!=NULL){
-            if(z==z->p->left){
-                w = z->p->right;
-                if(w->color==0){
-                    w->color = 1;
-                    z->p->color = 0;
-                    leftRotate(root, z->p);
+    if(z!=NULL){
+        while(z!=*root && z->color==1){
+            // if(x->color==RED || x->p==NULL)
+            //    x->color = BLACK;
+            if(z->p!=NULL){
+                if(z==z->p->left){
                     w = z->p->right;
-                }
-                if(w->left->color==1 && w->right->color==1){
-                    w->color = 0;
-                    z = z->p;
-                }
-                else{
-                    if(w->right->color==1){
-                        w->left->color = 1;
-                        w->color = 0;
-                        rightRotate(root, w);
+                    if(w->color==0){
+                        w->color = 1;
+                        z->p->color = 0;
+                        leftRotate(root, z->p);
                         w = z->p->right;
                     }
-                    w->color = z->p->color;
-                    z->p->color = 1;
-                    w->right->color = 1;
-                    leftRotate(root, z->p);
-                    z = *root;
-                }
-            }
-            else{
-                w = z->p->left;
-                if(w->color==0){
-                    w->color = 1;
-                    z->p->color = 0;
-                    rightRotate(root, z->p);
-                    w = z->p->left;
-                }
-                if(w->right->color==1 && w->left->color==1){
-                    w->color = 0;
-                    z = z->p;
+                    if(w->left->color==1 && w->right->color==1){
+                        w->color = 0;
+                        z = z->p;
+                    }
+                    else{
+                        if(w->right->color==1){
+                            w->left->color = 1;
+                            w->color = 0;
+                            rightRotate(root, w);
+                            w = z->p->right;
+                        }
+                        w->color = z->p->color;
+                        z->p->color = 1;
+                        w->right->color = 1;
+                        leftRotate(root, z->p);
+                        z = *root;
+                    }
                 }
                 else{
-                    if(w->left->color==1){
-                        w->right->color = 1;
-                        w->color = 0;
-                        leftRotate(root, w);
+                    w = z->p->left;
+                    if(w->color==0){
+                        w->color = 1;
+                        z->p->color = 0;
+                        rightRotate(root, z->p);
                         w = z->p->left;
                     }
-                    w->color = z->p->color;
-                    z->p->color = 1;
-                    w->left->color = 1;
-                    rightRotate(root, z->p);
-                    z = *root;
+                    if(w->right->color==1 && w->left->color==1){
+                        w->color = 0;
+                        z = z->p;
+                    }
+                    else{
+                        if(w->left->color==1){
+                            w->right->color = 1;
+                            w->color = 0;
+                            leftRotate(root, w);
+                            w = z->p->left;
+                        }
+                        w->color = z->p->color;
+                        z->p->color = 1;
+                        w->left->color = 1;
+                        rightRotate(root, z->p);
+                        z = *root;
+                    }
                 }
             }
         }
-    }
-    if(z!=NULL)
         z->color = 1;
+    }
 }
 
 struct nodo* treeSuccessor(struct nodo* x){
