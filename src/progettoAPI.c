@@ -26,12 +26,11 @@ struct nodo{
 //};
 
 // LISTA DELLE TAPPE DEL PERCORSO
-struct nodo3{
-    int distanza;
-    struct nodo3* next;
-};
+// struct nodo3{
+//    int distanza;
+//    struct nodo3* next;
+//};
 
-// forse conviene ritornare treeRoot per non perderne il riferimento
 void aggiungiStazione(struct nodo** root);
 void aggiungiAuto(struct nodo** root);
 void pianificaPercorso(struct nodo** root);
@@ -206,21 +205,31 @@ void pianificaPercorso(struct nodo** root){
         printf("%d\n", partenza);
     }
     else if(partenza<arrivo){ // da sinistra a destra, complessità fattoriale
-        struct nodo3* list = NULL;
+        /* struct nodo3* list = NULL;
         struct nodo3* toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
         toInsert->distanza = arrivo;
         toInsert->next = NULL;
         list = toInsert;
+         */
+        int* percorso = (int*)calloc(4, sizeof(int));
+        percorso[0] = arrivo;
+        int lastOcc = 0; // indice dell'ultima posizione occupata dell'array
         struct nodo* tmp = NULL;
-        while(toInsert->distanza!=partenza){
+        while(percorso[lastOcc]!=partenza){
             tmp = startStation;
             flag=0;
             while(tmp!=endStation) {
-                if (tmp->autonomies[0] >= arrivo - tmp->distanza) { // inserisco in testa
-                    toInsert = (struct nodo3 *) malloc(sizeof(struct nodo3));
+                if (tmp->autonomies[0] >= arrivo - tmp->distanza) { // inserisco in coda nell'array
+                    /*toInsert = (struct nodo3 *) malloc(sizeof(struct nodo3));
                     toInsert->distanza = tmp->distanza;
                     toInsert->next = list;
                     list = toInsert;
+                     */
+                    if(sizeof(percorso)==lastOcc+2){ // array ha solo ultima posizione vuota
+                        percorso = realloc(percorso, (sizeof(percorso)+2)*sizeof(int));
+                    }
+                    percorso[lastOcc+1]=tmp->distanza;
+                    lastOcc++;
                     endStation = tmp;
                     arrivo = tmp->distanza;
                     flag=1;
@@ -230,38 +239,54 @@ void pianificaPercorso(struct nodo** root){
             }
             if(tmp==endStation && flag==0){ // non esiste percorso
                 printf("nessun percorso\n");
+                free(percorso);
                 break;
             }
-            if(toInsert->distanza==partenza){ // esiste percorso
-                struct nodo3* tmp2 = list;
+            if(percorso[lastOcc]==partenza){ // esiste percorso
+                /*struct nodo3* tmp2 = list;
                 while(tmp2!=NULL){
                     printf("%d ", tmp2->distanza);
                     // free(tmp2) si può fare?
                     tmp2 = tmp2->next;
+                }*/
+                for(int i=lastOcc; i>=0; i--){
+                    printf("%d ", percorso[i]);
                 }
                 printf("\n");
+                free(percorso);
+                break; // non necessario
             }
         }
     }
     else{ // da destra a sinistra
-        struct nodo3* listHead = NULL;
+        /*struct nodo3* listHead = NULL;
         struct nodo3* listTail = NULL;
         struct nodo3* toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
         toInsert->distanza = partenza;
         toInsert->next = NULL;
         listHead = toInsert;
         listTail = toInsert;
+         */
+        int* percorso = (int*)calloc(4, sizeof(int));
+        percorso[0] = partenza;
+        int lastOcc = 0; // indice dell'ultima posizione occupata dell'array
         struct nodo* tmp = NULL;
-        while(toInsert->distanza!=arrivo){
+        while(percorso[lastOcc]!=arrivo){
             tmp = endStation;
             flag=0;
             while(tmp!=startStation){
                 if(startStation->autonomies[0] >= partenza - tmp->distanza){ // inserisco in coda
-                    toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
+                    /*toInsert = (struct nodo3*)malloc(sizeof(struct nodo3));
                     toInsert->distanza = tmp->distanza;
                     toInsert->next = NULL;
                     listTail->next = toInsert;
                     listTail = toInsert;
+                     */
+                    if(sizeof(percorso)==lastOcc+2){ // array ha solo ultima posizione vuota
+                        percorso = realloc(percorso, (sizeof(percorso)+2)*sizeof(int));
+                    }
+                    percorso[lastOcc+1]=tmp->distanza;
+                    lastOcc++;
                     startStation = tmp;
                     partenza = tmp->distanza;
                     flag=1;
@@ -271,16 +296,23 @@ void pianificaPercorso(struct nodo** root){
             }
             if(tmp==startStation && flag==0){
                 printf("nessun percorso\n");
+                free(percorso);
                 break;
             }
-            if(toInsert->distanza==arrivo){
+            if(percorso[lastOcc]==arrivo){
+                /*
                 struct nodo3* tmp2 = listHead;
                 while(tmp2!=NULL){
                     printf("%d ", tmp2->distanza);
                     // free(tmp2) si può fare?
                     tmp2 = tmp2->next;
+                }*/
+                for(int i=0; i<=lastOcc; i++){
+                    printf("%d ", percorso[i]);
                 }
                 printf("\n");
+                free(percorso);
+                break; // non necessario
             }
         }
     }
