@@ -10,7 +10,7 @@ int helper=0;
 struct nodo{
     int distanza; // key
     // int autonomiaMax;
-    enum {RED, BLACK} color;
+    char color; // RED=0, BLACK=1
     struct nodo* p;
     struct nodo* left;
     struct nodo* right;
@@ -86,7 +86,7 @@ void aggiungiStazione(struct nodo** root){
         // creo nodo da inserire nell'albero delle stazioni
         z = (struct nodo*)malloc(sizeof(struct nodo));
         z->distanza = distanza;
-        z->color = RED; // necessario?
+        z->color = 0; // necessario?
         z->p = NULL; // necessario?
         z->left = NULL; // necessario?
         z->right = NULL; // necessario?
@@ -396,14 +396,14 @@ void insert(struct nodo** root, struct nodo* z){
         y->right = z;
     z->left = NULL;
     z->right = NULL;
-    z->color = RED;
+    z->color = 0;
     rbInsertFixup(root, z);
 }
 
 struct nodo* delete(struct nodo** root, struct nodo* z){
     struct nodo* x = NULL;
     struct nodo* y = z;
-    enum {RED, BLACK} yOriginalColor = y->color;
+    char yOriginalColor = y->color;
     if(z->left==NULL){
         x = z->right;
         rbTransplant(root, z, z->right);
@@ -428,7 +428,7 @@ struct nodo* delete(struct nodo** root, struct nodo* z){
         y->left->p = y;
         y->color = z->color;
     }
-    if(yOriginalColor==BLACK)
+    if(yOriginalColor==1)
         rbDeleteFixup(root, x);
     return y;
     /*
@@ -510,14 +510,14 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
     // if(z==root)
     //    root->color = BLACK;
     //else{
-    while(z->p!=NULL && z->p->color==RED){
+    while(z->p!=NULL && z->p->color==0){
         if(z->p->p!=NULL){
             if(z->p==z->p->p->left){
                 y = z->p->p->right;
-                if(y!=NULL && y->color==RED){
-                    z->p->color = BLACK;
-                    y->color = BLACK;
-                    z->p->p->color = RED;
+                if(y!=NULL && y->color==0){
+                    z->p->color = 1;
+                    y->color = 1;
+                    z->p->p->color = 0;
                     z = z->p->p;
                 }
                 else{
@@ -525,18 +525,18 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
                         z = z->p;
                         leftRotate(root, z);
                     }
-                    z->p->color = BLACK;
-                    z->p->p->color = RED;
+                    z->p->color = 1;
+                    z->p->p->color = 0;
                     rightRotate(root, z->p->p);
                 }
 
             }
             else{
                 y = z->p->p->left;
-                if(y!=NULL && y->color==RED){
-                    z->p->color = BLACK;
-                    y->color = BLACK;
-                    z->p->p->color = RED;
+                if(y!=NULL && y->color==0){
+                    z->p->color = 1;
+                    y->color = 1;
+                    z->p->p->color = 0;
                     z = z->p->p;
                 }
                 else{
@@ -544,71 +544,71 @@ void rbInsertFixup(struct nodo** root, struct nodo* z){
                         z = z->p;
                         rightRotate(root, z);
                     }
-                    z->p->color = BLACK;
-                    z->p->p->color = RED;
+                    z->p->color = 1;
+                    z->p->p->color = 0;
                     leftRotate(root, z->p->p);
                 }
             }
         }
     }
     // }
-    (*root)->color = BLACK;
+    (*root)->color = 1;
 }
 
 void rbDeleteFixup(struct nodo** root, struct nodo* z){
     struct nodo* w = NULL;
-    while(z!=*root && z->color==BLACK){
+    while(z!=*root && z->color==1){
         // if(x->color==RED || x->p==NULL)
         //    x->color = BLACK;
         if(z->p!=NULL){
             if(z==z->p->left){
                 w = z->p->right;
-                if(w->color==RED){
-                    w->color = BLACK;
-                    z->p->color = RED;
+                if(w->color==0){
+                    w->color = 1;
+                    z->p->color = 0;
                     leftRotate(root, z->p);
                     w = z->p->right;
                 }
-                if(w->left->color==BLACK && w->right->color==BLACK){
-                    w->color = RED;
+                if(w->left->color==1 && w->right->color==1){
+                    w->color = 0;
                     z = z->p;
                 }
                 else{
-                    if(w->right->color==BLACK){
-                        w->left->color = BLACK;
-                        w->color = RED;
+                    if(w->right->color==1){
+                        w->left->color = 1;
+                        w->color = 0;
                         rightRotate(root, w);
                         w = z->p->right;
                     }
                     w->color = z->p->color;
-                    z->p->color = BLACK;
-                    w->right->color = BLACK;
+                    z->p->color = 1;
+                    w->right->color = 1;
                     leftRotate(root, z->p);
                     z = *root;
                 }
             }
             else{
                 w = z->p->left;
-                if(w->color==RED){
-                    w->color = BLACK;
-                    z->p->color = RED;
+                if(w->color==0){
+                    w->color = 1;
+                    z->p->color = 0;
                     rightRotate(root, z->p);
                     w = z->p->left;
                 }
-                if(w->right->color==BLACK && w->left->color==BLACK){
-                    w->color = RED;
+                if(w->right->color==1 && w->left->color==1){
+                    w->color = 0;
                     z = z->p;
                 }
                 else{
-                    if(w->left->color==BLACK){
-                        w->right->color = BLACK;
-                        w->color = RED;
+                    if(w->left->color==1){
+                        w->right->color = 1;
+                        w->color = 0;
                         leftRotate(root, w);
                         w = z->p->left;
                     }
                     w->color = z->p->color;
-                    z->p->color = BLACK;
-                    w->left->color = BLACK;
+                    z->p->color = 1;
+                    w->left->color = 1;
                     rightRotate(root, z->p);
                     z = *root;
                 }
@@ -616,7 +616,7 @@ void rbDeleteFixup(struct nodo** root, struct nodo* z){
         }
     }
     if(z!=NULL)
-        z->color = BLACK;
+        z->color = 1;
 }
 
 struct nodo* treeSuccessor(struct nodo* x){
