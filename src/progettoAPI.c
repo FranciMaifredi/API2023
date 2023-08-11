@@ -90,6 +90,7 @@ void aggiungiStazione(struct nodo** root){
         for(int i=0; i<numAuto; i++){
             helper = scanf("%d", &autonomia);
             m=0;
+            flag=0;
 
             if(autonomia>(z->autonomies[0])){
                 flag=1;
@@ -124,6 +125,7 @@ void aggiungiStazione(struct nodo** root){
                 if(z->autonomies[m]==0){ // array è vuoto da qui in avanti. Inserisco auto
                     z->autonomies[m] = autonomia;
                     z->multiplicities[m] = 1;
+                    numEmpty--;
                 }
                 else{
                     int tmpA1=autonomia, tmpA2=0, j=0;
