@@ -9,13 +9,18 @@ int helper=0;
 // ALBERO DELLE STAZIONI
 struct nodo{
     int distanza; // key
-    // int autonomiaMax;
+    int autonomiaMax;
     char color; // RED=0, BLACK=1
     struct nodo* p;
     struct nodo* left;
     struct nodo* right;
-    int* autonomies; // array dinamico delle autonomie
-    unsigned short* multiplicities; // array dinamico delle molteplicità di ogni autonomia
+    struct nodo2* autonomiesHead;
+};
+
+// LISTA DELLE AUTONOMIE: ordinata in ordine decrescente di autonomia
+struct nodo2{
+    int autonomia;
+    struct nodo2* next;
 };
 
 
@@ -35,6 +40,9 @@ void rbDeleteFixup(struct nodo** root, struct nodo* z);
 struct nodo* treeSuccessor(struct nodo* x);
 struct nodo* treeMinimum(struct nodo* x);
 struct nodo* treeSearch(struct nodo* root, int distanza);
+// LIST FUNCTIONS
+struct nodo2* listInsert(struct nodo* treeNode, int autonomia);
+struct nodo2* listDelete(struct nodo* treeNode, int autonomia);
 
 
 int main(){
@@ -57,7 +65,7 @@ int main(){
 }
 
 void aggiungiStazione(struct nodo** root){
-    int distanza=0, numAuto=0, autonomia=0, dimArray=0, numEmpty=0;
+    int distanza=0, numAuto=0, autonomia=0;
     helper = scanf("%d %d", &distanza, &numAuto);
 
     // controllo se la stazione è già presente
@@ -72,85 +80,19 @@ void aggiungiStazione(struct nodo** root){
         // creo nodo da inserire nell'albero delle stazioni
         z = (struct nodo*)malloc(sizeof(struct nodo));
         z->distanza = distanza;
+        z->autonomiaMax = 0;
         z->color = 0; // necessario?
         z->p = NULL; // necessario?
         z->left = NULL; // necessario?
         z->right = NULL; // necessario?
-        if(numAuto==512)
-            dimArray = 512;
-        else
-            dimArray = (numAuto/8+1)*8;
-        z->autonomies = (int*)calloc(dimArray, sizeof(int));
-        z->multiplicities = (unsigned short*)calloc(dimArray, sizeof(unsigned short));
-        numEmpty = dimArray;
+        z->autonomiesHead = NULL;
         insert(root, z);
 
         // inserisco le autonomie delle auto
         int flag=0, m=0;
         for(int i=0; i<numAuto; i++){
             helper = scanf("%d", &autonomia);
-            m=0;
-            flag=0;
-
-            if(autonomia>(z->autonomies[0])){
-                flag=1;
-            }
-            else if(autonomia==(z->autonomies[0]))
-                z->multiplicities[0]++;
-            else{
-                int beg = 0, end = dimArray-numEmpty-1;
-                m = (beg+end) / 2;
-                while(flag==0){ // pseudo-ricerca binaria
-                    if(autonomia==(z->autonomies[m])){ // autonomia già presente
-                        z->multiplicities[m]++;
-                        flag = -1; // oppure break;
-                    }
-                    else if(m==beg){ // end==beg+1, autonomia non presente, devo inserirla
-                        if(autonomia<(z->autonomies[end]))
-                            m=end;
-                        m++;
-                        flag = 1;
-                    }
-                    else if(autonomia>(z->autonomies[m])){
-                        end = m;
-                        m = (beg+end) / 2;
-                    }
-                    else if(autonomia<(z->autonomies[m])){
-                        beg = m;
-                        m = (beg+end) / 2;
-                    }
-                }
-            }
-            if(flag==1){
-                if(z->autonomies[m]==0){ // array è vuoto da qui in avanti. Inserisco auto
-                    z->autonomies[m] = autonomia;
-                    z->multiplicities[m] = 1;
-                    numEmpty--;
-                }
-                else{
-                    int tmpA1=autonomia, tmpA2=0, j=0;
-                    unsigned short tmpM1=1, tmpM2=0;
-                    while(m+j<dimArray && z->autonomies[m+j]!=0){
-                        tmpA2 = z->autonomies[m+j];
-                        tmpM2 = z->multiplicities[m+j];
-                        z->autonomies[m+j] = tmpA1;
-                        z->multiplicities[m+j] = tmpM1;
-                        tmpA1 = tmpA2;
-                        tmpM1 = tmpM2;
-                        j++;
-                    }
-                    z->autonomies[m+j] = tmpA1;
-                    z->multiplicities[m+j] = tmpM1;
-                    numEmpty--;
-                }
-            }
-        }
-        if(numEmpty>8){ // ci sono troppi spazi vuoti
-            dimArray = ((dimArray - numEmpty)/8 + 1)*8;
-            if(dimArray>512) // non dovrebbe verificarsi mai
-                dimArray = 512;
-            z->autonomies = realloc(z->autonomies, dimArray*sizeof(int));
-            z->multiplicities = realloc(z->multiplicities, dimArray*sizeof(unsigned short));
+            z->autonomiesHead = listInsert(z, autonomia);
         }
 
         printf("aggiunta\n");
@@ -161,83 +103,16 @@ void aggiungiAuto(struct nodo** root){
     int distanza=0, autonomia=0;
     helper = scanf("%d %d", &distanza, &autonomia);
     struct nodo* z = treeSearch(*root, distanza);
-    int dimArray = sizeof(z->autonomies);
     if(z!=NULL){
-        // controllo se riallocare gli arrays
-        if(z->autonomies[dimArray-2]!=0 && dimArray!=512){ // solo 1 spazio libero!! array vanno riallocati
-            dimArray = dimArray + 8;
-            if(dimArray>512)
-                dimArray = 512;
-            z->autonomies = realloc(z->autonomies, dimArray*sizeof(int));
-            z->multiplicities = realloc(z->multiplicities, dimArray*sizeof(unsigned short));
-        }
-
         // aggiungo l'auto
-        int flag=0, m=0, numEmpty=0;
-        for(int i=1; i<dimArray; i++){ // max 9 spazi liberi, quindi 9 iterazioni
-            if(z->autonomies[dimArray-i]==0)
-                numEmpty++;
-            else
-                break;
-        }
-
-        if(autonomia>(z->autonomies[0]))
-            flag=1;
-        else if(autonomia==(z->autonomies[0]))
-            z->multiplicities[0]++;
-        else{
-            int beg = 0, end = dimArray-numEmpty-1;
-            m = (beg+end) / 2;
-            while(flag==0){ // pseudo-ricerca binaria
-                if(autonomia==(z->autonomies[m])){ // autonomia già presente
-                    z->multiplicities[m]++;
-                    flag = -1; // oppure break;
-                }
-                else if(m==beg){ // end==beg+1, autonomia non presente, devo inserirla
-                    if(autonomia<(z->autonomies[end]))
-                        m=end;
-                    m++;
-                    flag = 1;
-                }
-                else if(autonomia>(z->autonomies[m])){
-                    end = m;
-                    m = (beg+end) / 2;
-                }
-                else if(autonomia<(z->autonomies[m])){
-                    beg = m;
-                    m = (beg+end) / 2;
-                }
-            }
-        }
-        if(flag==1){ // inserisco autonomia
-            if(z->autonomies[m]==0){ // array è vuoto da qui in avanti
-                z->autonomies[m] = autonomia;
-                z->multiplicities[m] = 1;
-            }
-            else{
-                int tmpA1=autonomia, tmpA2=0, j=0;
-                unsigned short tmpM1=1, tmpM2=0;
-                while(m+j<dimArray && z->autonomies[m+j]!=0){
-                    tmpA2 = z->autonomies[m+j];
-                    tmpM2 = z->multiplicities[m+j];
-                    z->autonomies[m+j] = tmpA1;
-                    z->multiplicities[m+j] = tmpM1;
-                    tmpA1 = tmpA2;
-                    tmpM1 = tmpM2;
-                    j++;
-                }
-                z->autonomies[m+j] = tmpA1;
-                z->multiplicities[m+j] = tmpM1;
-                //numEmpty--; superfluo
-            }
-        }
-
+        z->autonomiesHead = listInsert(z, autonomia);
         printf("aggiunta\n");
     }
     else
         printf("non aggiunta\n");
 }
 
+/*
 void pianificaPercorso(struct nodo** root){
     int partenza=0, arrivo=0;
     char flag=0;
@@ -324,33 +199,14 @@ void pianificaPercorso(struct nodo** root){
         }
     }
 }
+*/
 
 void rottamaAuto(struct nodo** root){
     int distanza=0, autonomia=0;
     helper = scanf("%d %d", &distanza, &autonomia);
     struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){
-        for(int i=0; i<sizeof(z->autonomies); i++){
-            if(autonomia>(z->autonomies[i])){
-                printf("non rottamata\n");
-                break;
-            }
-            else if(autonomia==(z->autonomies[i])){
-                z->multiplicities[i]--;
-                if(z->multiplicities[i]==0){
-                    int j=0;
-                    if(z->autonomies[i+j+1]==0) // array è vuoto da qui in avanti
-                        z->autonomies[i+j] = 0;
-                    while(i+j<sizeof(z->autonomies) && z->autonomies[i+j+1]!=0){
-                        z->autonomies[i+j] = z->autonomies[i+j+1];
-                        z->multiplicities[i+j] = z->multiplicities[i+j+1];
-                        j++;
-                    }
-                }
-                printf("rottamata\n");
-                break;
-            }
-        }
+        z->autonomiesHead = listDelete(z, autonomia);
     }
     else
         printf("non rottamata\n");
@@ -362,8 +218,15 @@ void demolisciStazione(struct nodo** root){
     struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){ // stazione esiste
         z = delete(root, z);
-        free(z->autonomies); // necessario?
-        free(z->multiplicities); // necessario?
+        if(z->autonomiesHead!=NULL){ // necessario?
+            struct nodo2* tmp = z->autonomiesHead->next;
+            while(tmp!=NULL){
+                free(z->autonomiesHead);
+                z->autonomiesHead = tmp;
+                tmp = tmp->next;
+            }
+            free(z->autonomiesHead);
+        }
         free(z);
         printf("demolita\n");
     }
@@ -621,6 +484,48 @@ struct nodo* treeSearch(struct nodo* root, int distanza){
         return treeSearch(root->left, distanza);
     else
         return treeSearch(root->right, distanza);
+}
+
+struct nodo2* listInsert(struct nodo* treeNode, int autonomia){ // inserisco in testa
+    struct nodo2* newNode = (struct nodo2*)malloc(sizeof(struct nodo2));
+    newNode->autonomia = autonomia;
+    newNode->next = treeNode->autonomiesHead;
+    if(autonomia>treeNode->autonomiaMax)
+        treeNode->autonomiaMax = autonomia;
+    return newNode;
+}
+
+struct nodo2* listDelete(struct nodo* treeNode, int autonomia){
+    if(autonomia<=treeNode->autonomiaMax){ // potrebbe esserci l'auto
+        struct nodo2* prec = NULL;
+        struct nodo2* tmp = treeNode->autonomiesHead;
+        while(tmp!=NULL && tmp->autonomia!=autonomia){
+            prec = tmp;
+            tmp = tmp->next;
+        }
+        if(tmp!=NULL && tmp->autonomia==autonomia){ // auto c'è
+            int max=0;
+            if(prec!=NULL)
+                prec->next = tmp->next;
+            else
+                treeNode->autonomiesHead = tmp->next;
+            free(tmp);
+            if(autonomia==treeNode->autonomiaMax){ // auto aveva autonomia max, quindi cerco la nuova autonomia max
+                prec = treeNode->autonomiesHead;
+                while(prec!=NULL){
+                    if(prec->autonomia>max)
+                        max = prec->autonomia;
+                    prec = prec->next;
+                }
+                treeNode->autonomiaMax = max;
+            }
+            printf("rottamata\n");
+            return treeNode->autonomiesHead;
+        }
+    }
+    // auto non c'è
+    printf("non rottamata\n");
+    return treeNode->autonomiesHead;
 }
 
 
