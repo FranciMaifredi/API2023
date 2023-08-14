@@ -23,6 +23,12 @@ struct nodo2{
     struct nodo2* next;
 };
 
+// LISTA DEL PERCORSO
+struct nodo3{
+    int distanza;
+    struct nodo3* next;
+};
+
 
 void aggiungiStazione(struct nodo** root);
 void aggiungiAuto(struct nodo** root);
@@ -38,8 +44,10 @@ void rightRotate(struct nodo** root, struct nodo* x);
 void rbInsertFixup(struct nodo** root, struct nodo* z);
 void rbDeleteFixup(struct nodo** root, struct nodo* z);
 struct nodo* treeSuccessor(struct nodo* x);
+struct nodo* treePredecessor(struct nodo* x);
 struct nodo* treeMinimum(struct nodo* x);
-struct nodo* treeSearch(struct nodo* root, int distanza);
+struct nodo* treeMaximum(struct nodo* x);
+struct nodo* treeSearch(struct nodo* x, int distanza);
 // LIST FUNCTIONS
 struct nodo2* listInsert(struct nodo* treeNode, int autonomia);
 struct nodo2* listDelete(struct nodo* treeNode, int autonomia);
@@ -89,7 +97,6 @@ void aggiungiStazione(struct nodo** root){
         insert(root, z);
 
         // inserisco le autonomie delle auto
-        int flag=0, m=0;
         for(int i=0; i<numAuto; i++){
             helper = scanf("%d", &autonomia);
             z->autonomiesHead = listInsert(z, autonomia);
@@ -112,94 +119,55 @@ void aggiungiAuto(struct nodo** root){
         printf("non aggiunta\n");
 }
 
-/*
 void pianificaPercorso(struct nodo** root){
     int partenza=0, arrivo=0;
-    char flag=0;
     helper = scanf("%d %d", &partenza, &arrivo);
-    struct nodo* startStation = treeSearch(*root, partenza);
+    // struct nodo* startStation = treeSearch(*root, partenza);
     struct nodo* endStation = treeSearch(*root, arrivo);
     if(partenza==arrivo) { // stessa stazione
         printf("%d\n", partenza);
     }
-    else if(partenza<arrivo){ // da sinistra a destra, complessità fattoriale
-        int* percorso = (int*)calloc(4, sizeof(int));
-        percorso[0] = arrivo;
-        int lastOcc = 0; // indice dell'ultima posizione occupata dell'array
-        struct nodo* tmp = NULL;
-        while(percorso[lastOcc]!=partenza){
-            tmp = startStation;
-            flag=0;
-            while(tmp!=endStation) {
-                if (tmp->autonomies[0] >= arrivo - tmp->distanza) { // inserisco in coda nell'array
-                    if(sizeof(percorso)==lastOcc+2){ // array ha solo ultima posizione vuota
-                        int size = sizeof(percorso);
-                        percorso = realloc(percorso, size+2*sizeof(int));
-                    }
-                    percorso[lastOcc+1]=tmp->distanza;
-                    lastOcc++;
-                    endStation = tmp;
-                    arrivo = tmp->distanza;
-                    flag=1;
-                    break;
+    else if(partenza<arrivo){ // da sinistra a destra
+        struct nodo3* percorso = (struct nodo3*)malloc(sizeof(struct nodo3)); // creo lista per percorso
+        percorso->distanza = arrivo;
+        percorso->next = NULL;
+        struct nodo3* help = percorso;
+
+        struct nodo* tmp = treePredecessor(endStation);
+        while(tmp!=NULL && tmp->distanza>=partenza){ // l'ultima iterazione è per tmp = startStation
+            help = percorso;
+            if(tmp->distanza+tmp->autonomiaMax>=help->distanza){
+                while(help->next!=NULL && tmp->distanza+tmp->autonomiaMax>=help->next->distanza){
+                    percorso = help->next;
+                    struct nodo3* prec = help;
+                    help = help->next;
+                    free(prec);
                 }
-                tmp = treeSuccessor(tmp);
+                struct nodo3* newNode = (struct nodo3*)malloc(sizeof(struct nodo3));
+                newNode->distanza = tmp->distanza; // inserisco in testa
+                newNode->next = help;
+                percorso = newNode;
             }
-            if(tmp==endStation && flag==0){ // non esiste percorso
-                printf("nessun percorso\n");
-                // free(percorso);
-                break;
-            }
-            if(percorso[lastOcc]==partenza){ // esiste percorso
-                for(int i=lastOcc; i>=0; i--){
-                    printf("%d ", percorso[i]);
-                }
-                printf("\n");
-                // free(percorso);
-                break; // non necessario
-            }
+            tmp = treePredecessor(tmp);
         }
+
+        if(percorso->distanza==partenza){ // esiste percorso (PERCORSO NON PUÒ ESSERE NULL)
+            help = percorso;
+            while(help!=NULL){
+                printf("%d ", help->distanza);
+                // struct nodo3* prec = help;
+                help = help->next;
+                // free(prec);
+            }
+            printf("\n");
+        }
+        else
+            printf("nessun percorso\n");
     }
     else{ // da destra a sinistra
-        int* percorso = (int*)calloc(4, sizeof(int));
-        percorso[0] = partenza;
-        int lastOcc = 0; // indice dell'ultima posizione occupata dell'array
-        struct nodo* tmp = NULL;
-        while(percorso[lastOcc]!=arrivo){
-            tmp = endStation;
-            flag=0;
-            while(tmp!=startStation){
-                if(startStation->autonomies[0] >= partenza - tmp->distanza){ // inserisco in coda
-                    if(sizeof(percorso)==lastOcc+2){ // array ha solo ultima posizione vuota
-                        int size = sizeof(percorso);
-                        percorso = realloc(percorso, size+2*sizeof(int));
-                    }
-                    percorso[lastOcc+1]=tmp->distanza;
-                    lastOcc++;
-                    startStation = tmp;
-                    partenza = tmp->distanza;
-                    flag=1;
-                    break;
-                }
-                tmp = treeSuccessor(tmp);
-            }
-            if(tmp==startStation && flag==0){
-                printf("nessun percorso\n");
-                // free(percorso);
-                break;
-            }
-            if(percorso[lastOcc]==arrivo){
-                for(int i=0; i<=lastOcc; i++){
-                    printf("%d ", percorso[i]);
-                }
-                printf("\n");
-                // free(percorso);
-                break; // non necessario
-            }
-        }
+        printf("ciao\n");
     }
 }
-*/
 
 void rottamaAuto(struct nodo** root){
     int distanza=0, autonomia=0;
@@ -227,7 +195,7 @@ void demolisciStazione(struct nodo** root){
             }
             free(z->autonomiesHead);
         }
-        free(z);
+        //free(z); da problemi di invalid read
         printf("demolita\n");
     }
     else
@@ -471,19 +439,39 @@ struct nodo* treeSuccessor(struct nodo* x){
     return y;
 }
 
+struct nodo* treePredecessor(struct nodo* x){
+    struct nodo* y = NULL;
+    if(x->left!=NULL)
+        return treeMaximum(x->left);
+    y = x->p;
+    while(y!=NULL && x==y->left){
+        x = y;
+        y = y->p;
+    }
+    return y;
+}
+
 struct nodo* treeMinimum(struct nodo* x){
     while(x->left!=NULL)
         x = x->left;
     return x;
 }
 
-struct nodo* treeSearch(struct nodo* root, int distanza){
-    if(root==NULL || distanza==root->distanza)
-        return root;
-    if(distanza<root->distanza)
-        return treeSearch(root->left, distanza);
+struct nodo* treeMaximum(struct nodo* x){
+    while(x->right!=NULL)
+        x = x->right;
+    return x;
+}
+
+struct nodo* treeSearch(struct nodo* x, int distanza){
+    if(x==NULL)
+        return x;
+    if(distanza==x->distanza)
+        return x;
+    if(distanza<x->distanza)
+        return treeSearch(x->left, distanza);
     else
-        return treeSearch(root->right, distanza);
+        return treeSearch(x->right, distanza);
 }
 
 struct nodo2* listInsert(struct nodo* treeNode, int autonomia){ // inserisco in testa
