@@ -56,8 +56,7 @@ struct nodo2* listDelete(struct nodo* treeNode, int autonomia);
 int main(){
     struct nodo* treeRoot = NULL;
     char comando[19];
-    while(!feof(stdin)){
-        helper = scanf("%s", comando);
+    while(scanf("%s", comando)!=EOF){
         if(strcmp(comando, "aggiungi-stazione")==0)
             aggiungiStazione(&treeRoot);
         else if(strcmp(comando, "aggiungi-auto")==0)
