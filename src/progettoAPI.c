@@ -122,7 +122,7 @@ void aggiungiAuto(struct nodo** root){
 void pianificaPercorso(struct nodo** root){
     int partenza=0, arrivo=0;
     helper = scanf("%d %d", &partenza, &arrivo);
-    // struct nodo* startStation = treeSearch(*root, partenza);
+    struct nodo* startStation = treeSearch(*root, partenza);
     struct nodo* endStation = treeSearch(*root, arrivo);
     if(partenza==arrivo) { // stessa stazione
         printf("%d\n", partenza);
@@ -165,7 +165,89 @@ void pianificaPercorso(struct nodo** root){
             printf("nessun percorso\n");
     }
     else{ // da destra a sinistra
-        printf("ciao\n");
+        struct nodo3* percorso = (struct nodo3*)malloc(sizeof(struct nodo3)); // creo lista per percorso
+        percorso->distanza = arrivo;
+        percorso->next = NULL;
+        struct nodo3* help = percorso;
+
+        struct nodo* tmp = treeSuccessor(endStation);
+        while(tmp!=NULL && tmp->distanza<=partenza){ // l'ultima iterazione è per tmp = startStation
+            help = percorso;
+            if(tmp->distanza-tmp->autonomiaMax<=help->distanza){
+                while(help->next!=NULL && tmp->distanza-tmp->autonomiaMax<=help->next->distanza){
+                    percorso = help->next;
+                    struct nodo3* prec = help;
+                    help = help->next;
+                    free(prec);
+                }
+                struct nodo3* newNode = (struct nodo3*)malloc(sizeof(struct nodo3));
+                newNode->distanza = tmp->distanza; // inserisco in testa
+                newNode->next = help;
+                percorso = newNode;
+            }
+            tmp = treeSuccessor(tmp);
+        }
+
+        if(percorso->distanza!=partenza){
+            printf("nessun percorso\n");
+        }
+        else{ // percorso c'è
+            int numTappe = 0, distanzaLim = 0, tappa = 0;
+            struct nodo3* proxTappa = percorso->next;
+            struct nodo* maxTappa = NULL;
+            tmp = startStation;
+            help = percorso;
+            while(help!=NULL){ // conto le tappe
+                numTappe++;
+                help=help->next;
+            }
+            numTappe--;
+            help = percorso;
+            // printf("\n");
+
+            // int percorsoFinale[numTappe];
+            // percorsoFinale[arrayInd] = tmp->distanza;
+            // arrayInd++;
+            printf("%d ", tmp->distanza);
+            maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax);
+            int i=0;
+            while(maxTappa==NULL){
+                i++;
+                maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax+i);
+            } // trovata la max stazione raggiungibile
+            distanzaLim = maxTappa->distanza;
+
+            while(tmp!=endStation){ // percorso = startStation
+                if(tmp->distanza<=proxTappa->distanza){
+                    numTappe--;
+                    help = help->next;
+                    proxTappa = proxTappa->next;
+                    if(tappa!=0)
+                        printf("%d ", tappa);
+                    // arrayInd++;
+                    distanzaLim = maxTappa->distanza;
+                }
+                if(help!=percorso && tmp->distanza-tmp->autonomiaMax<=proxTappa->distanza && tmp->distanza>=distanzaLim){
+                    // tappa raggiungibile e che riesce ad arrivare alla prossima tappa
+                    tappa = tmp->distanza;
+                    // percorsoFinale[arrayInd] = tmp->distanza;
+                    maxTappa = NULL; // sovrabbondante
+                    maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax);
+                    int i=0;
+                    while(maxTappa==NULL){
+                        i++;
+                        maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax+i);
+                    } // trovata la max stazione raggiungibile
+                    // printf("%d: %d tappe -> ", tmp->distanza, numTappe);
+                    // printf("raggiunge %d\n", maxTappa->distanza);
+                }
+                tmp = treePredecessor(tmp);
+            }
+            printf("%d", tappa);
+            printf("%d\n", tmp->distanza);
+            // percorsoFinale[arrayInd+1] = tmp->distanza;
+            // printf("%d\n\n", tmp->distanza); // è l'arrivo
+        }
     }
 }
 
