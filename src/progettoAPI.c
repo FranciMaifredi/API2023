@@ -192,7 +192,8 @@ void pianificaPercorso(struct nodo** root){
             printf("nessun percorso\n");
         }
         else{ // percorso c'è
-            int numTappe = 0, distanzaLim = 0, tappa = 0;
+            int numTappe = 0;
+            int distanzaLim = 0, tappa = 0, minTappa = 0;
             struct nodo3* proxTappa = percorso->next;
             struct nodo* maxTappa = NULL;
             tmp = startStation;
@@ -216,6 +217,9 @@ void pianificaPercorso(struct nodo** root){
                 maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax+i);
             } // trovata la max stazione raggiungibile
             distanzaLim = maxTappa->distanza;
+            minTappa = distanzaLim;
+            // printf("%d: %d tappe -> ", tmp->distanza, numTappe);
+            // printf("raggiunge %d\n", maxTappa->distanza);
 
             while(tmp!=endStation){ // percorso = startStation
                 if(tmp->distanza<=proxTappa->distanza){
@@ -225,11 +229,10 @@ void pianificaPercorso(struct nodo** root){
                     if(tappa!=0)
                         printf("%d ", tappa);
                     // arrayInd++;
-                    distanzaLim = maxTappa->distanza;
+                    distanzaLim = minTappa;
                 }
                 if(help!=percorso && tmp->distanza-tmp->autonomiaMax<=proxTappa->distanza && tmp->distanza>=distanzaLim){
                     // tappa raggiungibile e che riesce ad arrivare alla prossima tappa
-                    tappa = tmp->distanza;
                     // percorsoFinale[arrayInd] = tmp->distanza;
                     maxTappa = NULL; // sovrabbondante
                     maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax);
@@ -238,6 +241,11 @@ void pianificaPercorso(struct nodo** root){
                         i++;
                         maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax+i);
                     } // trovata la max stazione raggiungibile
+                    if(maxTappa->distanza<=minTappa || numTappe==1){
+                        tappa = tmp->distanza;
+                        minTappa = maxTappa->distanza;
+                    }
+
                     // printf("%d: %d tappe -> ", tmp->distanza, numTappe);
                     // printf("raggiunge %d\n", maxTappa->distanza);
                 }
@@ -268,7 +276,8 @@ void demolisciStazione(struct nodo** root){
     struct nodo* z = treeSearch(*root, distanza);
     if(z!=NULL){ // stazione esiste
         z = delete(root, z);
-        if(z->autonomiesHead!=NULL){ // necessario?
+        //viene ritornata la testa del sottoalbero senza quel nodo, non il nodo eliminato!!
+        /* if(z->autonomiesHead!=NULL){ // necessario?
             struct nodo2* tmp = z->autonomiesHead->next;
             while(tmp!=NULL){
                 free(z->autonomiesHead);
@@ -276,7 +285,7 @@ void demolisciStazione(struct nodo** root){
                 tmp = tmp->next;
             }
             free(z->autonomiesHead);
-        }
+        }*/
         //free(z); da problemi di invalid read
         printf("demolita\n");
     }
