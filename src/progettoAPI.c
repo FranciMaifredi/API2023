@@ -213,7 +213,7 @@ void pianificaPercorso(struct nodo** root){
             printf("%d ", tmp->distanza);
             maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax);
             int i=0;
-            while(maxTappa==NULL){
+            while(maxTappa==NULL && tmp->distanza-tmp->autonomiaMax+i<=tmp->distanza){
                 i++;
                 maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax+i);
             } // trovata la max stazione raggiungibile
@@ -237,8 +237,8 @@ void pianificaPercorso(struct nodo** root){
                     // percorsoFinale[arrayInd] = tmp->distanza;
                     maxTappa = NULL; // sovrabbondante
                     maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax);
-                    int i=0;
-                    while(maxTappa==NULL){
+                    i=0;
+                    while(maxTappa==NULL && tmp->distanza-tmp->autonomiaMax+i<=tmp->distanza){
                         i++;
                         maxTappa = treeSearch(*root, tmp->distanza-tmp->autonomiaMax+i);
                     } // trovata la max stazione raggiungibile
@@ -335,8 +335,10 @@ struct nodo* delete(struct nodo** root, struct nodo* z){
         y = treeMinimum(z->right);
         yOriginalColor = y->color;
         x = y->right;
-        if(y->p==z && x!=NULL)
-            x->p=y;
+        if(y->p==z){
+            if(x!=NULL)
+                x->p=y;
+        }
         else{
             rbTransplant(root, y, y->right);
             y->right = z->right;
@@ -363,7 +365,7 @@ void rbTransplant(struct nodo** root, struct nodo* u, struct nodo* v){
     else
         u->p->right = v;
     if(v!=NULL){
-        if(v->p!=NULL)
+        // if(v->p!=NULL)
             v->p = u->p;
     }
 }
