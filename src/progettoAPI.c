@@ -243,7 +243,7 @@ void pianificaPercorso(struct nodo** root){
                 }
                 tmp = treePredecessor(tmp);
             }
-            printf("%d", tappa);
+            printf("%d ", tappa);
             printf("%d\n", tmp->distanza);
             // percorsoFinale[arrayInd+1] = tmp->distanza;
             // printf("%d\n\n", tmp->distanza); // è l'arrivo
