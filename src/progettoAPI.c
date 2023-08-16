@@ -153,8 +153,10 @@ void pianificaPercorso(struct nodo** root){
 
         if(percorso->distanza==partenza){ // esiste percorso (PERCORSO NON PUÒ ESSERE NULL)
             help = percorso;
+            printf("%d", help->distanza);
+            help = help->next;
             while(help!=NULL){
-                printf("%d ", help->distanza);
+                printf(" %d", help->distanza);
                 // struct nodo3* prec = help;
                 help = help->next;
                 // free(prec);
@@ -462,52 +464,60 @@ void rbDeleteFixup(struct nodo** root, struct nodo* z){
             if(z->p!=NULL){
                 if(z==z->p->left){
                     w = z->p->right;
-                    if(w->color==0){
+                    if(w!=NULL && w->color==0){
                         w->color = 1;
                         z->p->color = 0;
                         leftRotate(root, z->p);
                         w = z->p->right;
                     }
-                    if(w->left->color==1 && w->right->color==1){
+                    if(w->left!=NULL && w->right!=NULL && w->left->color==1 && w->right->color==1){
                         w->color = 0;
                         z = z->p;
                     }
                     else{
-                        if(w->right->color==1){
-                            w->left->color = 1;
-                            w->color = 0;
+                        if(w->right!=NULL && w->right->color==1){
+                            if(w->left!=NULL)
+                                w->left->color = 1;
+                            if(w!=NULL)
+                                w->color = 0;
                             rightRotate(root, w);
                             w = z->p->right;
                         }
-                        w->color = z->p->color;
+                        if(w!=NULL)
+                            w->color = z->p->color;
                         z->p->color = 1;
-                        w->right->color = 1;
+                        if(w->right!=NULL)
+                            w->right->color = 1;
                         leftRotate(root, z->p);
                         z = *root;
                     }
                 }
                 else{
                     w = z->p->left;
-                    if(w->color==0){
+                    if(w!=NULL && w->color==0){
                         w->color = 1;
                         z->p->color = 0;
                         rightRotate(root, z->p);
                         w = z->p->left;
                     }
-                    if(w->right->color==1 && w->left->color==1){
+                    if(w->left!=NULL && w->right!=NULL && w->right->color==1 && w->left->color==1){
                         w->color = 0;
                         z = z->p;
                     }
                     else{
-                        if(w->left->color==1){
-                            w->right->color = 1;
-                            w->color = 0;
+                        if(w->left!=NULL && w->left->color==1){
+                            if(w->right!=NULL)
+                                w->right->color = 1;
+                            if(w!=NULL)
+                                w->color = 0;
                             leftRotate(root, w);
                             w = z->p->left;
                         }
-                        w->color = z->p->color;
+                        if(w!=NULL)
+                            w->color = z->p->color;
                         z->p->color = 1;
-                        w->left->color = 1;
+                        if(w->left!=NULL)
+                            w->left->color = 1;
                         rightRotate(root, z->p);
                         z = *root;
                     }
