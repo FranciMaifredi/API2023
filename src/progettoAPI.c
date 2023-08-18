@@ -156,9 +156,9 @@ void pianificaPercorso(struct nodo** root){
             help = help->next;
             while(help!=NULL){
                 printf(" %d", help->distanza);
-                // struct nodo3* prec = help;
+                struct nodo3* prec = help;
                 help = help->next;
-                // free(prec);
+                free(prec);
             }
             printf("\n");
         }
@@ -257,6 +257,12 @@ void pianificaPercorso(struct nodo** root){
             // percorsoFinale[arrayInd+1] = tmp->distanza;
             // printf("%d\n\n", tmp->distanza); // è l'arrivo
         }
+        help = percorso;
+        while(help!=NULL){
+            struct nodo3* prec = help;
+            help = help->next;
+            free(prec);
+        }
     }
 }
 
@@ -353,6 +359,16 @@ struct nodo* delete(struct nodo** root, struct nodo* z){
     }
     if(yOriginalColor==1)
         rbDeleteFixup(root, x);
+
+    if(z->autonomiesHead!=NULL){
+        struct nodo2* tmp = z->autonomiesHead;
+        while(tmp!=NULL){
+            struct nodo2* prec = tmp;
+            tmp = tmp->next;
+            free(prec);
+        }
+    }
+    free(z);
     return y;
 }
 
