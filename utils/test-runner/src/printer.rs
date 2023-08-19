@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use colored::*;
 use lazy_static::lazy_static;
 use tokio::sync::OnceCell;
@@ -79,7 +81,10 @@ impl Printer {
 
     pub fn short(&self, msg: &str) {
         match self.0 {
-            Level::Short => print!("{}", msg),
+            Level::Short => {
+                print!("{}", msg);
+                std::io::stdout().flush().unwrap();
+            }
             Level::Long => (),
         };
     }

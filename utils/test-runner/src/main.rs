@@ -5,22 +5,22 @@ use std::{collections::HashMap, io::read_to_string, path::PathBuf, process::Stdi
 use anyhow::{bail, Context, Result};
 use clap::Parser;
 use colored::*;
-// use lazy_static::lazy_static;
+use lazy_static::lazy_static;
 use time::{Duration, Instant};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, AsyncWriteExt},
     process::Command,
-    // sync::Semaphore,
+    sync::Semaphore,
     task::JoinSet,
 };
 use walkdir::WalkDir;
 
 use crate::printer::init_printer;
 
-// lazy_static! {
-//     static ref SEM: Semaphore = Semaphore::new(20);
-// }
+lazy_static! {
+    static ref SEM: Semaphore = Semaphore::new(10);
+}
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -71,30 +71,37 @@ impl TestJob {
             std::fs::File::open(&self.test_file).context("Cannot open test file for reading")?;
         let input_txt = read_to_string(file).context("Cannot read from test file")?;
         let start = Instant::now();
-        let timeout = std::time::Duration::from_secs(7);
+        let timeout = std::time::Duration::from_secs(5);
         let test_file = self.test_file.clone();
         let timeout_ret = tokio::time::timeout(timeout, async move {
             let mut child = Command::new(self.executable)
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
+                .kill_on_drop(true)
                 .spawn()
                 .context("Failed to spawn child process")?;
-            let mut stdin = child.stdin.take().context("Failed to open stdin")?;
-
-            // drop early if looped
-            if (stdin.write_all(input_txt.as_bytes()).await).is_err() {
+            let mut stdin = child.stdin.take().unwrap();
+            // let mut stdout = child.stdout.take().unwrap();
+            // let mut output_bytes = Vec::new();
+            let handler = tokio::spawn(async move {
+                stdin.write_all(input_txt.as_bytes()).await?;
+                drop(stdin);
+                Ok::<_, anyhow::Error>(())
+            });
+            // stdout.read_(&mut output_bytes).await?;
+            // drop(stdout);
+            let output = child.wait_with_output().await?;
+            if (handler.await?).is_err() {
                 return Ok::<_, anyhow::Error>(TestResult {
                     test_file: self.test_file,
                     status: TestOutcome::Crashed,
                     timing: start.elapsed(),
                 });
             }
-            drop(stdin);
-            let output = child.wait_with_output().await?;
 
             // drop early if crashed
             if !output.status.success() {
-                return Ok(TestResult {
+                return Ok::<_, anyhow::Error>(TestResult {
                     test_file: self.test_file,
                     status: TestOutcome::Crashed,
                     timing: start.elapsed(),
@@ -177,20 +184,26 @@ async fn main() -> Result<()> {
         let mut tasks = JoinSet::new();
         for job in jobs {
             tasks.spawn(async move {
-                // let _s = SEM.acquire().await.unwrap();
+                let _s = SEM.acquire().await.unwrap();
                 // info!("doing {}", job.test_file.display());
-                let ret = job.execute().await;
-                if let Ok(r) = ret.as_ref() {
-                    let (short_msg, long_msg) = match r.status {
-                        TestOutcome::Correct => (".".green(), "SUCCESS".green()),
-                        TestOutcome::Incorrect => ("F".red().bold(), "FAIL".red().bold()),
-                        TestOutcome::Crashed => ("C".yellow().bold(), "CRASHED".yellow().bold()),
-                        TestOutcome::Looped => ("L".cyan().bold(), "LOOPED".cyan().bold()),
-                    };
-                    short!("{}", short_msg);
-                    long!("  {} - {}", long_msg, r.test_file.display());
-                };
-                ret
+                match job.execute().await {
+                    Ok(r) => {
+                        let (short_msg, long_msg) = match r.status {
+                            TestOutcome::Correct => (".".green(), "SUCCESS".green()),
+                            TestOutcome::Incorrect => ("F".red().bold(), "FAIL".red().bold()),
+                            TestOutcome::Crashed => {
+                                ("C".yellow().bold(), "CRASHED".yellow().bold())
+                            }
+                            TestOutcome::Looped => ("L".cyan().bold(), "LOOPED".cyan().bold()),
+                        };
+                        short!("{}", short_msg);
+                        long!("  {} - {}", long_msg, r.test_file.display());
+                        Ok(r)
+                    }
+                    Err(e) => {
+                        bail!(e)
+                    }
+                }
             });
         }
         while let Some(res) = tasks.join_next().await {
@@ -203,24 +216,45 @@ async fn main() -> Result<()> {
     }
 
     // print statistics
-    let mut succ_n = 0;
-    let mut fail_n = 0;
-    let mut crash_n = 0;
-    let mut loop_n = 0;
+    let mut correct_jobs = Vec::new();
+    let mut failed_jobs = Vec::new();
+    let mut crashed_jobs = Vec::new();
+    let mut looped_jobs = Vec::new();
     for res in results {
         match res.status {
-            TestOutcome::Correct => succ_n += 1,
-            TestOutcome::Incorrect => fail_n += 1,
-            TestOutcome::Looped => loop_n += 1,
-            TestOutcome::Crashed => crash_n += 1,
+            TestOutcome::Correct => correct_jobs.push(res),
+            TestOutcome::Incorrect => failed_jobs.push(res),
+            TestOutcome::Looped => looped_jobs.push(res),
+            TestOutcome::Crashed => crashed_jobs.push(res),
         };
     }
 
-    info!("\nStatistics:");
-    both!("{}: {}", "CORRECT".green(), succ_n);
-    both!("{}: {}", "INCORRECT".red().bold(), fail_n);
-    both!("{}: {}", "CRASHED".yellow().bold(), crash_n);
-    both!("{}: {}", "LOOPED".cyan().bold(), loop_n);
+    both!("");
+    info!("Statistics:");
+    if !correct_jobs.is_empty() {
+        both!("{}: {}", "CORRECT".green(), correct_jobs.len());
+    }
+    if !failed_jobs.is_empty() {
+        both!("{}: {}", "INCORRECT".red().bold(), failed_jobs.len());
+        for job in failed_jobs {
+            long!("  {}", job.test_file.display().to_string().italic().red());
+        }
+    }
+    if !crashed_jobs.is_empty() {
+        both!("{}: {}", "CRASHED".yellow().bold(), crashed_jobs.len());
+        for job in crashed_jobs {
+            long!(
+                "  {}",
+                job.test_file.display().to_string().italic().yellow()
+            );
+        }
+    }
+    if !looped_jobs.is_empty() {
+        both!("{}: {}", "LOOPED".cyan().bold(), looped_jobs.len());
+        for job in looped_jobs {
+            long!("  {}", job.test_file.display().to_string().italic().cyan());
+        }
+    }
 
     Ok(())
 }
