@@ -2,3 +2,7 @@
 docs
 progettoAPI
 .vscode
+utils/test-runner/target
+tests
+utils/test_gen_2023
+test-runner
