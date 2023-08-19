@@ -582,14 +582,14 @@ struct nodo* treeMaximum(struct nodo* x){
 }
 
 struct nodo* treeSearch(struct nodo* x, int distanza){
-    if(x==NULL)
-        return x;
-    if(distanza==x->distanza)
-        return x;
-    if(distanza<x->distanza)
-        return treeSearch(x->left, distanza);
-    else
-        return treeSearch(x->right, distanza);
+    struct nodo* z = x;
+    while(z!=NULL && distanza!=z->distanza){
+        if(distanza<(z->distanza))
+            z = z->left;
+        else
+            z = z->right;
+    }
+    return z;
 }
 
 struct nodo2* listInsert(struct nodo* treeNode, int autonomia){ // inserisco in testa
