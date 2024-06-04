@@ -1,0 +1,7 @@
+docs
+progettoAPI
+.vscode
+utils/test-runner/target
+tests/**/*.txt
+utils/test_gen_2023
+test-runner
